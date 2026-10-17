@@ -32,19 +32,17 @@ from vsr import LipReader, keypoints, resample
 
 env = lambda name, default: type(default)(os.environ.get(name, default))
 
-# Same as live.py, except where noted (tuned for latency; override with env vars)
+# Same as live.py
 START = 0.10  # jaw opening that starts a phrase
 STILL = 0.04  # jaw opening below this counts as a pause
-PAUSE = env("PAUSE", 0.7)  # seconds of pause that ends a phrase (live.py: 1.0)
+PAUSE = env("PAUSE", 1.0)  # seconds of pause that ends a phrase
 MAX_SECONDS = 8.0
 MIN_SECONDS = 0.8
 PREROLL = 0.6  # seconds kept before the phrase starts
 MAX_SIDE = 960  # same downscale as mouth.read_video
 
-TAIL = 0.3  # keep this much of the closing pause; the rest is silence the model doesn't need
-# Beam 10 matched beam 40 on our test clips at ~60% of the time (live.py's config: 40).
-FINAL_BEAM = env("FINAL_BEAM", 10)
-PARTIAL_BEAM = env("PARTIAL_BEAM", 4)  # in-progress text only
+FINAL_BEAM = env("FINAL_BEAM", 40)  # live.py's config
+PARTIAL_BEAM = env("PARTIAL_BEAM", 4)  # in-progress text only; finals always use FINAL_BEAM
 PARTIAL_EVERY = env("PARTIAL_EVERY", 0.5)  # seconds between partial decodes
 
 print("loading lip-reading model...")
@@ -81,6 +79,9 @@ class Session:
         bgr = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
         if bgr is None:
             return
+        s = MAX_SIDE / max(bgr.shape[:2])
+        if s < 1:
+            bgr = cv2.resize(bgr, None, fx=s, fy=s)
         feat, pts = self.tracker(bgr, 33 if self.prev_t is None else (t - self.prev_t) * 1000)
         self.prev_t = t
         h, w = bgr.shape[:2]
@@ -104,7 +105,8 @@ class Session:
         if done or t - self.clip[0][2] > MAX_SECONDS:
             self.finish()
         elif (
-            t - self.last_partial >= PARTIAL_EVERY
+            self.quiet_since is None  # mouth moving; once it's still, keep the model free for the final
+            and t - self.last_partial >= PARTIAL_EVERY
             and t - self.clip[0][2] >= MIN_SECONDS
             and not running(self.partial)
             and not running(self.final)
@@ -117,11 +119,15 @@ class Session:
             self.finish()
 
     def finish(self):
-        clip, cid, quiet = self.clip, self.clip_id, self.quiet_since
+        clip, cid = self.clip, self.clip_id
         self.clip = None
         self.preroll.clear()
-        if quiet is not None:
-            clip = [c for c in clip if c[2] <= quiet + TAIL]
+        if len(clip) >= 2:  # diagnostics: the model wants ~25 fps of sharp frames with a face
+            dur = clip[-1][2] - clip[0][2]
+            faces = sum(kp is not None for _, kp, _ in clip)
+            h, w = clip[0][0].shape[:2]
+            print(f"clip {cid}: {dur:.1f}s, {len(clip)} frames ({len(clip) / dur:.0f} fps), {w}x{h}, "
+                  f"face in {100 * faces // len(clip)}%", flush=True)
         if len(clip) < 2 or clip[-1][2] - clip[0][2] <= MIN_SECONDS:
             self.emit({"type": "status", "status": "idle"})
             return
@@ -145,6 +151,7 @@ class Session:
             msg = {"type": "final", "clip": cid, "text": read(clip), "seconds": round(time.time() - start, 2)}
         except Exception as e:
             msg = {"type": "final", "clip": cid, "text": "", "error": str(e) or type(e).__name__}
+        print(f"clip {cid}: {msg.get('text') or msg.get('error')!r} in {time.time() - start:.1f}s", flush=True)
         self.emit(msg)
         self.emit({"type": "status", "status": "idle"})
 

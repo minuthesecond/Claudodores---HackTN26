@@ -3,11 +3,12 @@
 Browser UI for the lip reader. While reading, it streams camera frames over a WebSocket
 to [`../lipread/server.py`](../lipread/server.py), which runs live.py's loop on them
 (jawOpen phrase segmentation → Face Landmarker keypoints → Auto-AVSR LRS3_V_WER19.1 +
-language model). Text updates about twice a second while you mouth a phrase, and the
-full decode finalizes the line ~1.7 s after you pause.
+language model). Fast partial decodes update the text while you mouth a phrase; once you
+pause for 1 s, the full decode (same settings as live.py) finalizes the line.
 
-Latency knobs (env vars for `./run.sh`): `PAUSE` (0.7 s; live.py uses 1.0),
-`FINAL_BEAM` (10; live.py uses 40), `PARTIAL_BEAM` (4), `PARTIAL_EVERY` (0.5 s).
+Env vars for `./run.sh`: `PAUSE` (1.0 s), `FINAL_BEAM` (40), `PARTIAL_BEAM` (4),
+`PARTIAL_EVERY` (0.5 s). The server prints each phrase's fps, resolution, face coverage
+and result, which is the first place to look when accuracy drops.
 
 ## Run
 

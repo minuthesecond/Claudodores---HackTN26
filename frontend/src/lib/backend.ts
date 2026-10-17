@@ -13,9 +13,11 @@ import type { FrameInput, LipReader, ReaderEvent, ReaderStatus } from './reader'
 /** Dev: Vite proxies /api (HTTP + WebSocket) to the server (see vite.config.ts). */
 export const API = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api'
 
-const FRAME_MS = 40 // 25 fps, the model's rate
-const SEND_WIDTH = 640
-const JPEG_QUALITY = 0.8
+// Send every camera frame (webcams run at ~30 fps; the server resamples to the
+// model's 25) at the same size the server works at, so the mouth crop stays sharp.
+const MIN_FRAME_MS = 30
+const SEND_SIDE = 960
+const JPEG_QUALITY = 0.92
 const MAX_BUFFERED = 512 * 1024 // skip frames rather than queue them if the link is slow
 const RETRY_MS = 2000
 
@@ -46,6 +48,7 @@ export class StreamLipReader implements LipReader {
   private ws: WebSocket | null = null
   private retryAt = 0
   private lastSent = 0
+  private lastFrameTime = -1
   private sending = false
   private canvas = document.createElement('canvas')
 
@@ -58,12 +61,16 @@ export class StreamLipReader implements LipReader {
     if (!source || source.readyState < 2 || !source.videoWidth) return
     const ws = this.connect(now)
     if (ws?.readyState !== WebSocket.OPEN) return
-    if (this.sending || now - this.lastSent < FRAME_MS || ws.bufferedAmount > MAX_BUFFERED) return
+    if (this.sending || ws.bufferedAmount > MAX_BUFFERED) return
+    // only new camera frames, and never faster than the camera
+    if (source.currentTime === this.lastFrameTime || now - this.lastSent < MIN_FRAME_MS) return
 
     this.lastSent = now
+    this.lastFrameTime = source.currentTime
     this.sending = true
-    const w = Math.min(SEND_WIDTH, source.videoWidth)
-    const h = Math.round((source.videoHeight * w) / source.videoWidth)
+    const scale = Math.min(1, SEND_SIDE / Math.max(source.videoWidth, source.videoHeight))
+    const w = Math.round(source.videoWidth * scale)
+    const h = Math.round(source.videoHeight * scale)
     if (this.canvas.width !== w || this.canvas.height !== h) Object.assign(this.canvas, { width: w, height: h })
     this.canvas.getContext('2d')!.drawImage(source, 0, 0, w, h)
     this.canvas.toBlob(
