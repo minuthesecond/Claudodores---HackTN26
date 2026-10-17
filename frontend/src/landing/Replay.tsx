@@ -112,7 +112,7 @@ export function Replay() {
         <div className="rp-signal">
           <div className="rp-signal-head">
             <span>jawOpen</span>
-            <span className="rp-value">{jaw[frame].toFixed(2)}</span>
+            <span className="rp-value">{(jaw[frame] ?? 0).toFixed(2)}</span>
           </div>
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="rp-graph">
             <rect

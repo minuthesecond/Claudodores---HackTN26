@@ -1,72 +1,33 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Logo } from '../components/Icons'
+import { Phone, type Screen } from './Phone'
 import { Replay } from './Replay'
 import { useSmoothParallax } from './motion'
 import './landing.css'
 
 const REPO = 'https://github.com/minuthesecond/Claudodores---HackTN26'
 
-const STEPS = [
-  {
-    n: '01',
-    title: 'Camera',
-    body: 'Any webcam. In Chrome, frames come straight off the camera track, so the model gets every one.',
-    spec: '30 fps · 960 px · no microphone',
-  },
-  {
-    n: '02',
-    title: 'Face',
-    body: 'MediaPipe Face Landmarker finds 478 points on the face and measures how far the jaw is open.',
-    spec: '478 landmarks · jawOpen blendshape',
-  },
-  {
-    n: '03',
-    title: 'Phrase',
-    body: 'A phrase starts when the jaw opens and ends after a second of stillness. No button to hold.',
-    spec: 'start > 0.10 · pause < 0.04 for 1.0 s',
-  },
-  {
-    n: '04',
-    title: 'Mouth',
-    body: 'Each frame is aligned on the eyes, nose and mouth, then cropped to the lips in grayscale.',
-    spec: '96 × 96 px · resampled to 25 fps',
-  },
-  {
-    n: '05',
-    title: 'Model',
-    body: 'A visual speech model reads the crop sequence; a language model picks the likeliest sentence.',
-    spec: 'Auto-AVSR · LM weight 0.3 · beam 40',
-  },
+const STEPS: { screen: Screen; n: string; title: string; line: string }[] = [
+  { screen: 'bank', n: '01', title: 'Bank', line: 'Fifteen minutes on camera before surgery.' },
+  { screen: 'train', n: '02', title: 'Train', line: 'A clone of your voice. A model of your lips.' },
+  { screen: 'speak', n: '03', title: 'Speak', line: 'Mouth it, tap the right guess, hear yourself.' },
 ]
 
-const SPECS: [string, string][] = [
-  ['Model', 'Auto-AVSR, visual only — LRS3_V_WER19.1 (Ma et al., Imperial College London)'],
-  ['Benchmark', '19.1% word error rate on LRS3, as published. Not a measure of this setup.'],
-  ['Face tracking', 'MediaPipe Face Landmarker, 478 landmarks + blendshapes'],
-  ['Input', '30 fps camera, resampled to 25 fps; 96 × 96 grayscale mouth crop'],
-  ['Live text', 'Updates while the mouth is moving, about once a second'],
-  ['Final text', '≈1.5 s after the pause, on an Apple M5 Pro CPU'],
-  ['Vocabulary', 'Open. English.'],
-  ['Audio', 'None. The microphone is never requested.'],
-  ['Video', 'Streams to your own server for decoding. Nothing is stored.'],
+// Business plan figures, with their sources
+const STATS = [
+  { value: '12,290', label: 'Americans diagnosed with laryngeal cancer each year', source: 'American Cancer Society, 2026 est.' },
+  { value: '75–100K', label: 'Adults who get a tracheostomy each year', source: 'From ASHA incidence rates' },
+  { value: '3×', label: 'Preventable adverse events when patients can’t communicate', source: 'Bartlett et al., CMAJ 2008' },
 ]
 
-const LIMITS = [
-  ['Lookalike words', 'Some words look the same on the lips. In our tests it sometimes read “Justin” as “Jason.”'],
-  ['Light', 'Webcams slow down in dim rooms and accuracy goes with them. The reader shows the live frame rate.'],
-  ['One phrase at a time', 'Leave a short pause between sentences.'],
-  ['Talking heads', 'Trained on TED talks and YouTube interviews: front-facing, well lit. Profiles and covered mouths fail.'],
-  ['Not a medical device', 'A hackathon prototype. The model is licensed for research and non-commercial use.'],
-]
-
-const SHEET_ROWS = 6 // the sprite is 13 × 6 mouth crops
+const FILM_ROWS = [0, 2, 4] // sprite rows used in the film strip
 
 export function Landing() {
   const root = useRef<HTMLDivElement>(null)
   useSmoothParallax(root)
 
   useEffect(() => {
-    document.title = 'UNSPOKEN — Lip reading from any webcam'
+    document.title = 'UNSPOKEN — Speak again, in your own voice'
   }, [])
 
   return (
@@ -78,198 +39,211 @@ export function Landing() {
         </a>
         <nav className="lp-links">
           <a href="#how">How it works</a>
-          <a href="#specs">Specs</a>
-          <a href="#limits">Limits</a>
-          <a href={REPO}>Source</a>
+          <a href="#why">Why</a>
+          <a href="#hospitals">Hospitals</a>
         </nav>
         <a className="lp-btn lp-btn-solid lp-nav-cta" href="/app">
-          Open the reader
+          Try the demo
         </a>
       </header>
 
+      {/* ------------------------------------------------------------ hero */}
       <section className="lp-hero lp-wrap">
-        <p className="lp-kicker">
-          <span>Visual speech recognition</span>
-          <span>HackTN 2026</span>
-        </p>
-        <h1 className="lp-title">
-          <span className="lp-line" data-x="-0.32">
-            Speech without
-          </span>
-          <span className="lp-line" data-x="0.22">
-            the <em>sound.</em>
-          </span>
-        </h1>
-        <div className="lp-hero-grid">
-          <div className="lp-hero-copy" data-y="0.1">
-            <p className="lp-lede">
-              Unspoken reads lips from an ordinary webcam and writes down what someone is saying, as they say it.
-            </p>
-            <p className="lp-sub">Built for people who can mouth words but can’t voice them.</p>
-            <div className="lp-actions">
-              <a className="lp-btn lp-btn-solid" href="/app">
-                Open the reader
-              </a>
-              <a className="lp-btn" href="#how">
-                How it works
-              </a>
-            </div>
-          </div>
-          <div data-y="-0.08">
-            <Replay />
-          </div>
-        </div>
-      </section>
-
-      <section className="lp-strip">
-        <div className="lp-wrap lp-strip-grid">
-          <Fact value="30" unit="fps" label="Camera frames to the model" />
-          <Fact value="96" unit="px" label="Square mouth crop it reads" />
-          <Fact value="1.5" unit="s" label="From pause to final text" />
-          <Fact value="0" unit="mic" label="Audio recorded, ever" />
-        </div>
-      </section>
-
-      <section className="lp-band" aria-label="What isn’t said still gets read">
-        <div className="lp-band-row" data-x="-0.45" aria-hidden>
-          {Array.from({ length: 6 }, (_, i) => (
-            <span key={i}>What isn’t said</span>
-          ))}
-        </div>
-        <div className="lp-band-row lp-band-accent" data-x="0.45" aria-hidden>
-          {Array.from({ length: 6 }, (_, i) => (
-            <span key={i}>Still gets read</span>
-          ))}
-        </div>
-      </section>
-
-      <section className="lp-section lp-wrap" id="why">
-        <SectionLabel n="01" title="Why" />
-        <div className="lp-why">
-          <p className="lp-statement">
-            A ventilator takes the voice.
-            <br />
-            It doesn’t take the <em>words.</em>
-          </p>
-          <div className="lp-why-body" data-y="-0.06">
-            <p>
-              Patients who are intubated or have a tracheostomy often still mouth what they want to say. Reading
-              lips by eye is slow and unreliable, and spelling on a letter board is slower.
-            </p>
-            <p>Unspoken puts their words on a screen next to the bed while they’re still saying them.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="lp-section lp-wrap" id="how">
-        <SectionLabel n="02" title="How it works" />
-        <div className="lp-how">
-          <ol className="lp-steps">
-            {STEPS.map((s) => (
-              <li key={s.n} className="lp-step">
-                <span className="lp-step-n">{s.n}</span>
-                <div>
-                  <h3>{s.title}</h3>
-                  <p>{s.body}</p>
-                  <span className="lp-step-spec">{s.spec}</span>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <figure className="lp-sheet">
-            <div className="lp-sheet-img" role="img" aria-label="78 grayscale mouth crops in a grid">
-              {Array.from({ length: SHEET_ROWS }, (_, i) => (
-                // rows slide in alternating directions as you scroll, like film strips
-                <div
-                  key={i}
-                  className="lp-sheet-row"
-                  data-bg={i % 2 ? 0.16 : -0.16}
-                  style={{ backgroundPositionY: `${(i / (SHEET_ROWS - 1)) * 100}%` }}
-                />
-              ))}
-            </div>
-            <figcaption>
-              <span>Every frame the model saw</span>
-              <span>“Hi my name is Justin” · 78 frames · 3.1 s</span>
-            </figcaption>
-          </figure>
-        </div>
-      </section>
-
-      <section className="lp-section lp-wrap" id="specs">
-        <SectionLabel n="03" title="Specs" />
-        <dl className="lp-specs">
-          {SPECS.map(([k, v]) => (
-            <div key={k} className="lp-spec">
-              <dt>{k}</dt>
-              <dd>{v}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <section className="lp-section lp-wrap" id="limits">
-        <SectionLabel n="04" title="What it gets wrong" />
-        <ol className="lp-limits">
-          {LIMITS.map(([k, v], i) => (
-            <li key={k}>
-              <span className="lp-limit-n">{String(i + 1).padStart(2, '0')}</span>
-              <h3>{k}</h3>
-              <p>{v}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="lp-end">
-        <div className="lp-wrap lp-end-grid" data-y="-0.35">
-          <h2>
-            <span className="lp-line" data-x="0.18">
-              Try it on
-            </span>
+        <div className="lp-hero-copy">
+          <h1 className="lp-title">
             <span className="lp-line" data-x="-0.12">
-              your own <em>face.</em>
+              Mouth it.
+            </span>
+            <span className="lp-line" data-x="0.08">
+              Hear
+            </span>
+            <span className="lp-line" data-x="-0.05">
+              <em>yourself.</em>
+            </span>
+          </h1>
+          <p className="lp-lede">For people who lose their voice. Speak again, in your own.</p>
+          <div className="lp-actions">
+            <a className="lp-btn lp-btn-solid" href="/app">
+              Try the demo
+            </a>
+            <a className="lp-btn" href="#how">
+              How it works
+            </a>
+          </div>
+        </div>
+        <div className="lp-hero-phone" data-y="-0.12">
+          <Phone screen="speak" />
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------ film strip */}
+      <section className="lp-film" aria-label="Real lip-reading model input">
+        {FILM_ROWS.map((row, i) => (
+          <div
+            key={row}
+            className="lp-film-row"
+            data-bg={i % 2 ? 0.35 : -0.35}
+            style={{ backgroundPositionY: `${(row / 5) * 100}%` }}
+          />
+        ))}
+        <p className="lp-caption lp-wrap">Real model input · 96 × 96 · 25 frames a second</p>
+      </section>
+
+      {/* --------------------------------------------------------- problem */}
+      <section className="lp-why lp-wrap" id="why">
+        <h2 className="lp-big" data-x="-0.04">
+          Losing your voice
+          <br />
+          shouldn’t mean <em>losing a say.</em>
+        </h2>
+        <div className="lp-stats">
+          {STATS.map((s, i) => (
+            <figure key={s.value} className="lp-stat" data-y={0.04 + i * 0.04}>
+              <span className="lp-stat-value">{s.value}</span>
+              <figcaption>
+                <span>{s.label}</span>
+                <small>{s.source}</small>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* ------------------------------------------------- pinned story */}
+      <Story />
+
+      {/* ---------------------------------------------------------- map */}
+      <section className="lp-map-section lp-wrap">
+        <h2 className="lp-map-title">
+          <span className="lp-line">Silent.</span>
+          <span className="lp-line">Sounds like</span>
+          <span className="lp-line">
+            <em>you.</em>
+          </span>
+        </h2>
+        <CompetitiveMap />
+      </section>
+
+      {/* -------------------------------------------------------- proof */}
+      <section className="lp-proof lp-wrap">
+        <div className="lp-proof-head">
+          <span className="lp-tag">Working prototype</span>
+          <h2>It already reads lips.</h2>
+        </div>
+        <div data-y="-0.06">
+          <Replay />
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------- hospitals */}
+      <section className="lp-hospitals" id="hospitals">
+        <div className="lp-wrap lp-hospitals-grid" data-y="-0.25">
+          <h2>
+            <span className="lp-line" data-x="0.1">
+              $400 a patient.
+            </span>
+            <span className="lp-line" data-x="-0.08">
+              <em>Patients pay nothing.</em>
             </span>
           </h2>
-          <div className="lp-end-side">
+          <div className="lp-hospitals-side">
+            <p>Licensed to cancer centers and hospitals. Fits the speech therapy visit that already happens before surgery.</p>
             <a className="lp-btn lp-btn-accent" href="/app">
-              Open the reader
+              Try the demo
             </a>
-            <p>
-              Needs the lip-reading server running: <code>./setup.sh</code> once, then <code>./run.sh</code>.
-            </p>
           </div>
         </div>
       </section>
 
       <footer className="lp-foot lp-wrap">
-        <span>Unspoken · Built at HackTN 2026 by the Claudodores</span>
-        <span>
-          Model: Auto-AVSR, Ma et al., Imperial College London ·{' '}
-          <a href={REPO}>Source on GitHub</a>
-        </span>
+        <span>Unspoken · HackTN 2026 · The Claudodores</span>
+        <span>Prototype. Not a medical device.</span>
+        <a href={REPO}>Source</a>
       </footer>
     </div>
   )
 }
 
-function SectionLabel({ n, title }: { n: string; title: string }) {
+/** Bank → Train → Speak, with the phone pinned while the steps scroll past. */
+function Story() {
+  const ref = useRef<HTMLElement>(null)
+  const [step, setStep] = useState(0)
+
+  useEffect(() => {
+    let raf = 0
+    const tick = () => {
+      raf = requestAnimationFrame(tick)
+      const el = ref.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      const progress = (innerHeight / 2 - r.top) / r.height
+      const next = Math.max(0, Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length)))
+      setStep((s) => (s === next ? s : next))
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
   return (
-    <header className="lp-label">
-      <span className="lp-label-n">{n}</span>
-      <h2>{title}</h2>
-    </header>
+    <section className="lp-story" id="how" ref={ref}>
+      <div className="lp-story-pin lp-wrap">
+        <ol className="lp-story-steps">
+          {STEPS.map((s, i) => (
+            <li key={s.n} className={i === step ? 'is-active' : ''}>
+              <span className="lp-story-n">{s.n}</span>
+              <h3>{s.title}</h3>
+              <p>{s.line}</p>
+              <div className="lp-story-phone-sm">
+                <Phone screen={s.screen} />
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div className="lp-story-phone">
+          <Phone screen={STEPS[step].screen} />
+          <div className="lp-story-dots">
+            {STEPS.map((s, i) => (
+              <i key={s.n} className={i === step ? 'is-active' : ''} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }
 
-function Fact({ value, unit, label }: { value: string; unit: string; label: string }) {
+/** The business plan's competitive map: effort to communicate vs. sounds like the patient. */
+function CompetitiveMap() {
+  const dots = [
+    { x: 0.1, y: 0.74, label: 'Typing + banked voice' },
+    { x: 0.1, y: 0.26, label: 'Whiteboard, letter board' },
+    { x: 0.66, y: 0.38, label: 'Electrolarynx' },
+    { x: 0.84, y: 0.2, label: 'Lip-reading apps' },
+  ]
   return (
-    <div className="lp-fact">
-      <span className="lp-fact-value">
-        {value}
-        <small>{unit}</small>
-      </span>
-      <span className="lp-fact-label">{label}</span>
-    </div>
+    <figure className="lp-map">
+      <span className="lp-map-axis">↑ Sounds like you</span>
+      <div className="lp-map-plot">
+        <span className="lp-map-q" />
+        {dots.map((d) => (
+          <span
+            key={d.label}
+            className={`lp-map-dot ${d.x > 0.6 ? 'is-left' : ''}`}
+            style={{ left: `${d.x * 100}%`, bottom: `${d.y * 100}%` }}
+          >
+            <i />
+            {d.label}
+          </span>
+        ))}
+        <span className="lp-map-dot is-us" style={{ left: '80%', bottom: '76%' }}>
+          <i />
+          Unspoken
+        </span>
+      </div>
+      <figcaption>
+        <span>Effort to communicate</span>
+        <span>Silent, no typing →</span>
+      </figcaption>
+    </figure>
   )
 }
