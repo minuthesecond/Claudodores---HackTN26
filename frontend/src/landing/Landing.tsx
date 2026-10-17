@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Logo } from '../components/Icons'
 import { Replay } from './Replay'
+import { useSmoothParallax } from './motion'
 import './landing.css'
 
 const REPO = 'https://github.com/minuthesecond/Claudodores---HackTN26'
@@ -58,13 +59,18 @@ const LIMITS = [
   ['Not a medical device', 'A hackathon prototype. The model is licensed for research and non-commercial use.'],
 ]
 
+const SHEET_ROWS = 6 // the sprite is 13 × 6 mouth crops
+
 export function Landing() {
+  const root = useRef<HTMLDivElement>(null)
+  useSmoothParallax(root)
+
   useEffect(() => {
     document.title = 'UNSPOKEN — Lip reading from any webcam'
   }, [])
 
   return (
-    <div className="lp">
+    <div className="lp" ref={root}>
       <header className="lp-nav">
         <a className="lp-brand" href="/">
           <Logo />
@@ -87,12 +93,15 @@ export function Landing() {
           <span>HackTN 2026</span>
         </p>
         <h1 className="lp-title">
-          Speech without
-          <br />
-          the <em>sound.</em>
+          <span className="lp-line" data-x="-0.32">
+            Speech without
+          </span>
+          <span className="lp-line" data-x="0.22">
+            the <em>sound.</em>
+          </span>
         </h1>
         <div className="lp-hero-grid">
-          <div className="lp-hero-copy">
+          <div className="lp-hero-copy" data-y="0.1">
             <p className="lp-lede">
               Unspoken reads lips from an ordinary webcam and writes down what someone is saying, as they say it.
             </p>
@@ -106,7 +115,9 @@ export function Landing() {
               </a>
             </div>
           </div>
-          <Replay />
+          <div data-y="-0.08">
+            <Replay />
+          </div>
         </div>
       </section>
 
@@ -119,6 +130,19 @@ export function Landing() {
         </div>
       </section>
 
+      <section className="lp-band" aria-label="What isn’t said still gets read">
+        <div className="lp-band-row" data-x="-0.45" aria-hidden>
+          {Array.from({ length: 6 }, (_, i) => (
+            <span key={i}>What isn’t said</span>
+          ))}
+        </div>
+        <div className="lp-band-row lp-band-accent" data-x="0.45" aria-hidden>
+          {Array.from({ length: 6 }, (_, i) => (
+            <span key={i}>Still gets read</span>
+          ))}
+        </div>
+      </section>
+
       <section className="lp-section lp-wrap" id="why">
         <SectionLabel n="01" title="Why" />
         <div className="lp-why">
@@ -127,7 +151,7 @@ export function Landing() {
             <br />
             It doesn’t take the <em>words.</em>
           </p>
-          <div className="lp-why-body">
+          <div className="lp-why-body" data-y="-0.06">
             <p>
               Patients who are intubated or have a tracheostomy often still mouth what they want to say. Reading
               lips by eye is slow and unreliable, and spelling on a letter board is slower.
@@ -153,7 +177,17 @@ export function Landing() {
             ))}
           </ol>
           <figure className="lp-sheet">
-            <div className="lp-sheet-img" role="img" aria-label="78 grayscale mouth crops in a grid" />
+            <div className="lp-sheet-img" role="img" aria-label="78 grayscale mouth crops in a grid">
+              {Array.from({ length: SHEET_ROWS }, (_, i) => (
+                // rows slide in alternating directions as you scroll, like film strips
+                <div
+                  key={i}
+                  className="lp-sheet-row"
+                  data-bg={i % 2 ? 0.16 : -0.16}
+                  style={{ backgroundPositionY: `${(i / (SHEET_ROWS - 1)) * 100}%` }}
+                />
+              ))}
+            </div>
             <figcaption>
               <span>Every frame the model saw</span>
               <span>“Hi my name is Justin” · 78 frames · 3.1 s</span>
@@ -188,11 +222,14 @@ export function Landing() {
       </section>
 
       <section className="lp-end">
-        <div className="lp-wrap lp-end-grid">
+        <div className="lp-wrap lp-end-grid" data-y="-0.35">
           <h2>
-            Try it on
-            <br />
-            your own <em>face.</em>
+            <span className="lp-line" data-x="0.18">
+              Try it on
+            </span>
+            <span className="lp-line" data-x="-0.12">
+              your own <em>face.</em>
+            </span>
           </h2>
           <div className="lp-end-side">
             <a className="lp-btn lp-btn-accent" href="/app">

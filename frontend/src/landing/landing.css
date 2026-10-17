@@ -4,6 +4,17 @@
   min-height: 100%;
   background: var(--bg);
   color: var(--text);
+  overflow-x: clip; /* parallax moves type sideways past the edges */
+}
+
+.lp [data-x],
+.lp [data-y] {
+  will-change: transform;
+}
+
+.lp-line {
+  display: block;
+  white-space: nowrap;
 }
 
 .lp a {
@@ -355,6 +366,7 @@
 
 /* -------------------------------------------------------------- facts */
 .lp-strip {
+  overflow: clip;
   background: var(--surface);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -394,6 +406,31 @@
   font: 500 10.5px/1.3 var(--mono);
   letter-spacing: 0.12em;
   color: var(--text-2);
+}
+
+/* --------------------------------------------------------------- band */
+.lp-band {
+  padding: 72px 0 8px;
+  overflow: clip;
+}
+
+.lp-band-row {
+  display: flex;
+  gap: 0.35em;
+  white-space: nowrap;
+  font: 700 clamp(72px, 12vw, 200px) / 0.9 var(--display);
+  letter-spacing: -0.01em;
+}
+
+.lp-band-row span::after {
+  content: '/';
+  margin-left: 0.35em;
+  color: var(--line-soft);
+}
+
+.lp-band-accent {
+  color: var(--accent);
+  margin-left: -60%; /* starts off to the left; slides right into view */
 }
 
 /* ----------------------------------------------------------- sections */
@@ -506,10 +543,19 @@
 }
 
 .lp-sheet-img {
-  aspect-ratio: 1248 / 576;
-  background: #000 url('/landing/mouth-sprite.png') 0 0 / 100% auto no-repeat;
+  display: grid;
+  background: #000;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+/* one row of the 13 × 6 sprite, repeated sideways so it can slide forever */
+.lp-sheet-row {
+  aspect-ratio: 1248 / 96;
+  background-image: url('/landing/mouth-sprite.png');
+  background-size: 100% 600%;
+  background-repeat: repeat-x;
 }
 
 .lp-sheet figcaption {
@@ -591,6 +637,7 @@
 
 /* closing call to action: the page's one inverted block */
 .lp-end {
+  overflow: clip; /* its content rises in from below */
   margin-top: 96px;
   background: var(--text);
   color: var(--bg);
