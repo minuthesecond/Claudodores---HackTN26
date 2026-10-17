@@ -32,7 +32,7 @@ Three people, each owning one part. Stay inside your own folder unless asked, an
 |---|---|---|
 | Joey | `lipread/` (lip reading) | MediaPipe Face Landmarker finds the face and mouth; `jawOpen` decides when a phrase starts and stops; Auto-AVSR turns the clip into **text** |
 | Clark | `frontend/` + `lipread/server.py` (web app) | "UNSPOKEN" React app: camera, live transcript, streams frames to the lip-reading server over a WebSocket |
-| Justin | `voice/` (voice output) | Takes that **text** and speaks it out loud in a cloned voice using XTTS-v2 |
+| Justin | `voice/` (voice output) | Takes that **text** and speaks it out loud with an XTTS-v2 voice |
 
 ## Pipeline
 
@@ -61,7 +61,6 @@ browser camera (frontend) → WS /stream → lipread/server.py                  
     voice.py                 # XTTS-v2 voice cloning, phrase cache, streaming
     speak_captions.py        # watches lipread/captions.json (written by live.py) and speaks each new caption
     requirements.txt
-    my_voice.wav             # (gitignored) ~20 sec voice sample for cloning
     voice_cache/             # (gitignored) pre-generated phrase audio
   third_party/auto_avsr/     # (gitignored) clone of mpc001/Visual_Speech_Recognition_for_Multiple_Languages + models
 ```
@@ -78,10 +77,11 @@ Do not change these without telling the other owners.
 - `GET /health` → `{"ok": true, "device": str, "model": "LRS3_V_WER19.1", "stream": true}`
 
 **Voice server (`voice/voice_server.py`, port 8001, CORS open):**
-- `GET /speak?text=...&language=en` → `audio/wav` of the text in the cloned voice
-- `POST /speak` with JSON `{"text": str, "language": "en"}` → same wav
-- `GET /speak/stream?text=...&language=en` → `audio/wav` sent while it is generated. In the browser: `new Audio(url).play()`
-- `GET /health` → `{"ok": true, "device": "cpu" | "cuda"}`
+- `GET /speak?text=...&language=en&voice=<optional>` → `audio/wav` of the text
+- `POST /speak` with JSON `{"text": str, "language": "en", "voice": str | null}` → same wav
+- `GET /speak/stream?text=...&language=en&voice=<optional>` → `audio/wav` sent while it is generated. In the browser: `new Audio(url).play()`
+- `GET /voices` → `{"default": str, "voices": [str, ...]}` (XTTS built-in voices)
+- `GET /health` → `{"ok": true, "device": "cpu" | "cuda", "voice": str}`
 
 **Text from lip reading** is a plain lowercase string, for example `"i need some water"`. It is noisy (the model has about 19 percent word error rate on clean, spoken benchmark video, worse on silent mouthing), so expect wrong or missing words.
 
@@ -97,7 +97,7 @@ Nothing snaps lip-read text to this list yet. That cleanup step belongs to the v
 
 - **Model:** Coqui XTTS-v2 via the maintained `coqui-tts` package (model id `tts_models/multilingual/multi-dataset/xtts_v2`). Clones a voice from a short sample with no training. Supports many languages, which we use for translation.
 - **License:** XTTS-v2 is non-commercial (CPML). Fine for the hackathon. `voice.py` sets `COQUI_TOS_AGREED=1`.
-- **Voice sample:** `voice/my_voice.wav`, about 20 seconds of clear, varied, natural speech in a quiet room, mono. The current file is only 3 seconds, cut from a test clip; record a proper one. Mac: `ffmpeg -f avfoundation -i ":0" -t 20 -ac 1 -ar 22050 my_voice.wav`
+- **Voice:** one of XTTS-v2's 58 built-in voices, default `Claribel Dervla`. Change the default with the `VOICE_SPEAKER` env var, or per request with `&voice=<name>` (list them at `GET /voices`). To clone a real person instead (the "voice banking" story), set `VOICE_SAMPLE` to about 20 seconds of their clear speech.
 - **Speed (CPU laptop):** cached phrase 0.01 s; new sentence starts streaming after about 2.5 s but generates about 3x slower than real time, so it stutters. On an OCI A10 GPU it should start in well under a second and run faster than real time.
 - **Caching:** every ICU phrase, and every streamed sentence once finished, is saved in `voice_cache/` keyed by md5 of language + text. Startup also warms up streaming (otherwise the first streamed sentence takes about 30 s on CPU).
 - **Test:** `python voice/voice.py "I need water"` writes `voice/out.wav`.
@@ -137,7 +137,7 @@ The browser needs HTTPS to use the camera when the frontend is not on localhost,
 
 ## Next steps for the voice half
 
-1. Record a proper 20-second `my_voice.wav` and confirm it sounds like the speaker.
+1. Pick the demo voice from `GET /voices`.
 2. Add an OCI Generative AI cleanup function (raw lip-read text → clean sentence or closest ICU phrase, plus optional translation). Call it before speaking.
 3. Add translation output by passing the target `language` into XTTS so the patient's own voice speaks the translated sentence.
 4. Deploy the voice server to the OCI GPU instance next to the lip-reading server.
