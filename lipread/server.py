@@ -81,11 +81,17 @@ class Session:
         self.inbox = queue.Queue()
         self.received = self.tracked = 0
         self.stats_at = time.time()
+        self.second, self.second_at = 0, time.time()  # frames received in the current second
         threading.Thread(target=self._run, daemon=True).start()
 
     def push(self, jpeg, t):
         self.received += 1
         self.inbox.put((jpeg, t))
+        self.second += 1
+        now = time.time()
+        if now - self.second_at >= 1.0:  # tell the browser what frame rate the model is getting
+            self.emit({"type": "stats", "fps": round(self.second / (now - self.second_at))})
+            self.second, self.second_at = 0, now
 
     def request_flush(self):
         self.inbox.put("flush")

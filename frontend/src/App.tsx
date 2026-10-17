@@ -48,6 +48,12 @@ export default function App() {
 
   const t = useTranscript(reader, clock)
 
+  const [streamFps, setStreamFps] = useState<number | null>(null)
+  useEffect(() => reader.on((e) => e.type === 'stats' && setStreamFps(e.fps)), [reader])
+  useEffect(() => {
+    if (!reading) setStreamFps(null)
+  }, [reading])
+
   useEffect(() => {
     if (!reading) return
     const id = setInterval(() => setElapsed(clock()), 250)
@@ -165,6 +171,7 @@ export default function App() {
             label={label}
             tone={tone}
             reader={reader}
+            streamFps={online && reading ? streamFps : null}
             showMesh={showMesh}
             mirrored={mirrored}
             caption={

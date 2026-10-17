@@ -6,6 +6,10 @@ to [`../lipread/server.py`](../lipread/server.py), which runs live.py's loop on 
 language model). Fast partial decodes update the text while you mouth a phrase; once you
 pause for 1 s, the full decode (same settings as live.py) finalizes the line.
 
+Frames are read straight off the camera track in a Web Worker (Chrome/Edge), so the model
+gets the camera's full ~30 fps even when the page is busy; the HUD's **Model input** chip
+shows the live rate and turns orange below 24 fps. Other browsers grab frames from the page.
+
 Env vars for `./run.sh`: `PAUSE` (1.0 s), `FINAL_BEAM` (40), `PARTIAL_BEAM` (4),
 `PARTIAL_EVERY` (0.5 s). The server prints each phrase's fps, resolution, face coverage
 and result, which is the first place to look when accuracy drops.

@@ -31,6 +31,7 @@ export function useCamera() {
           facingMode: id ? undefined : 'user',
           width: { ideal: 1280 },
           height: { ideal: 720 },
+          frameRate: { ideal: 30 }, // the model wants ~25 fps of real frames
         },
       })
       release()

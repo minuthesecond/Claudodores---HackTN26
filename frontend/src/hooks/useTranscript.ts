@@ -77,6 +77,8 @@ function reducer(s: State, a: Action): State {
         currentAt: 0,
       }
     }
+    case 'stats':
+      return s
     case 'clear':
       return { ...initial, status: s.status }
   }

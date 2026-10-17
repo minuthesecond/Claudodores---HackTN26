@@ -17,6 +17,8 @@ type Props = {
   mirrored: boolean
   caption?: ReactNode
   empty: ReactNode
+  /** frames per second reaching the model (backend only) */
+  streamFps?: number | null
 }
 
 const ACCENT = '#ff3d00'
@@ -24,7 +26,7 @@ const HISTORY = 44
 const SPEAKING = 0.16
 const ROI_ASPECT = 1.6
 
-export function Stage({ stream, reading, label, tone, reader, showMesh, mirrored, caption, empty }: Props) {
+export function Stage({ stream, reading, label, tone, reader, showMesh, mirrored, caption, empty, streamFps }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const overlayRef = useRef<HTMLCanvasElement>(null)
   const roiRef = useRef<HTMLCanvasElement>(null)
@@ -283,10 +285,18 @@ export function Stage({ stream, reading, label, tone, reader, showMesh, mirrored
             <span className="chip-dot" />
             {label}
           </span>
-          <span className="chip chip-mono">
-            <span className={`signal ${tracking === 'tracking' && stats.face ? 'ok' : tracking === 'loading' ? 'wait' : 'warn'}`} />
-            {status}
-          </span>
+          <div className="hud-chips">
+            {streamFps != null && (
+              <span className="chip chip-mono" title="Frames per second reaching the lip-reading model (needs ~25)">
+                <span className={`signal ${streamFps >= 24 ? 'ok' : 'warn'}`} />
+                Model input {streamFps} fps
+              </span>
+            )}
+            <span className="chip chip-mono">
+              <span className={`signal ${tracking === 'tracking' && stats.face ? 'ok' : tracking === 'loading' ? 'wait' : 'warn'}`} />
+              {status}
+            </span>
+          </div>
         </div>
 
         <div className="hud-bottom">

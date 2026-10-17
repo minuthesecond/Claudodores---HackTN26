@@ -16,6 +16,8 @@ export type ReaderEvent =
   | { type: 'status'; status: ReaderStatus }
   /** the in-progress phrase so far; replaces the previous partial */
   | { type: 'partial'; text: string }
+  /** frames per second the model is receiving */
+  | { type: 'stats'; fps: number }
   /** `phrase` is only set by servers that snap to a fixed phrase list (null = no match) */
   | { type: 'result'; raw: string; phrase?: string | null; seconds?: number; error?: string }
 
