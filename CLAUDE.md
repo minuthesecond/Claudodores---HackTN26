@@ -59,6 +59,7 @@ browser camera (frontend) → WS /stream → lipread/server.py                  
   voice/                     # (Justin) text to voice
     voice_server.py          # FastAPI server on port 8001: /speak, /speak/stream, /health
     voice.py                 # XTTS-v2 voice cloning, phrase cache, streaming
+    speak_captions.py        # watches lipread/captions.json (written by live.py) and speaks each new caption
     requirements.txt
     my_voice.wav             # (gitignored) ~20 sec voice sample for cloning
     voice_cache/             # (gitignored) pre-generated phrase audio
