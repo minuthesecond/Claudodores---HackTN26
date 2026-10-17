@@ -1,0 +1,6 @@
+path: ../Facial Feature Extraction Dataset  # relative to this file; train.py makes it absolute
+train: train/images
+val: valid/images
+test: test/images
+nc: 5
+names: ['eye', 'eyebrow', 'lip', 'mustache-beard', 'nose']

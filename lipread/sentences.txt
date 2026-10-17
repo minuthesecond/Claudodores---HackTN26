@@ -1,0 +1,15 @@
+# id|sentence  (clip files are named <id>_<spoken|silent>_<take>.MOV, e.g. boats_silent_2.MOV)
+justin|my name is justin
+fox|the quick brown fox jumps over the lazy dog
+boats|the green boats drifted past the empty pier
+umbrella|we found a small purple umbrella by the door
+bottle|please move the bottle from my brother's table
+chairs|five wooden chairs stood near the old fountain
+coffee|she poured fresh coffee into three mugs
+truck|a heavy truck blocked the narrow bridge
+uncle|my uncle bought sixty pounds of apples
+kites|they watched the yellow kites over the beach
+barn|turn left at the big white barn
+music|nobody knew why the music stopped
+book|put the blue book on the top shelf
+pizzas|justin brought two pizzas for everyone
