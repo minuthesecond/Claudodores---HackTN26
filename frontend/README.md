@@ -26,7 +26,8 @@ and result, which is the first place to look when accuracy drops.
    npm run dev
    ```
 
-3. Open http://localhost:5173, enable the camera, press **Start reading** (or Space).
+3. Open http://localhost:5173 for the landing page, or http://localhost:5173/app for the
+   reader: enable the camera, press **Start reading** (or Space).
 
 The dev server proxies `/api/*` to `http://localhost:8000`, because the backend has no
 CORS headers. To use a backend on another machine: `BACKEND_URL=http://host:8000 npm run dev`.
@@ -36,6 +37,10 @@ back to a mock reader. It retries every 5 s and switches over once the server is
 Add `?simulate` to the URL to fake lip movement without a face (useful for demos).
 
 ## Where things are
+
+- `src/landing/`: landing page (`/`). The hero replays real pipeline output for
+  `talking.MOV` — mouth crops, jawOpen signal, partial and final decodes — from
+  `public/landing/` (`mouth-sprite.png`, `replay.json`)
 
 - `../lipread/server.py`: WebSocket/HTTP wrapper around live.py's pipeline
 - `src/lib/backend.ts`: frame streaming and server messages

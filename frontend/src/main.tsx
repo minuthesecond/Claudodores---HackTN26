@@ -1,10 +1,20 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App'
+import { Landing } from './landing/Landing'
 import './styles.css'
+
+// "/" is the landing page; "/app" is the reader (loaded on demand, it pulls in MediaPipe).
+const App = lazy(() => import('./App'))
+const isApp = location.pathname.replace(/\/+$/, '') === '/app'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    {isApp ? (
+      <Suspense fallback={null}>
+        <App />
+      </Suspense>
+    ) : (
+      <Landing />
+    )}
   </StrictMode>,
 )

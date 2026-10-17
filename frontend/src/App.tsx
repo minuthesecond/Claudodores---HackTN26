@@ -48,6 +48,10 @@ export default function App() {
 
   const t = useTranscript(reader, clock)
 
+  useEffect(() => {
+    document.title = 'UNSPOKEN — Reader'
+  }, [])
+
   const [streamFps, setStreamFps] = useState<number | null>(null)
   useEffect(() => reader.on((e) => e.type === 'stats' && setStreamFps(e.fps)), [reader])
   useEffect(() => {
@@ -140,11 +144,11 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand">
+        <a className="brand" href="/">
           <Logo />
           <span className="brand-name">Unspoken</span>
           <span className="badge">v0.1 Preview</span>
-        </div>
+        </a>
         <dl className="topbar-meta">
           <div>
             <dt>Model</dt>

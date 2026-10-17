@@ -120,6 +120,8 @@ button:disabled {
 }
 
 .brand {
+  color: inherit;
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 12px;
