@@ -1,0 +1,6 @@
+path: /Users/joelchen/.superset/worktrees/oracle-hacks/were-working-facial-ac732d08/Facial Feature Extraction Dataset
+train: train/images
+val: valid/images
+test: test/images
+nc: 5
+names: ['eye', 'eyebrow', 'lip', 'mustache-beard', 'nose']

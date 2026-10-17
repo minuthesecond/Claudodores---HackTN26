@@ -3,3 +3,5 @@ third_party/
 lipread/runs/
 lipread/*.log
 __pycache__/
+lipread/captions.json
+lipread/captions.json.tmp

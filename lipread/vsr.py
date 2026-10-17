@@ -25,11 +25,15 @@ def keypoints(pts, w, h):
     return np.array([[np.mean([pts[i].x for i in grp]) * w, np.mean([pts[i].y for i in grp]) * h] for grp in _ANCHORS])
 
 
-def resample(frames, kps, times, fps=MODEL_FPS):
-    """Pick the frame nearest to each tick of a fixed-rate clock (webcams and phones aren't 25fps)."""
+def tick_indices(times, fps=MODEL_FPS):
+    """Index of the frame nearest to each tick of a fixed-rate clock (webcams and phones aren't 25fps)."""
     times = np.asarray(times, dtype=np.float64)
     ticks = np.arange(times[0], times[-1], 1.0 / fps)
-    idx = np.clip(np.searchsorted(times, ticks), 0, len(times) - 1)
+    return np.clip(np.searchsorted(times, ticks), 0, len(times) - 1)
+
+
+def resample(frames, kps, times, fps=MODEL_FPS):
+    idx = tick_indices(times, fps)
     return [frames[i] for i in idx], [kps[i] for i in idx]
 
 
