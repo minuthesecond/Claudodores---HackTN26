@@ -167,7 +167,7 @@ export function Stage({ stream, reading, label, tone, reader, showMesh, mirrored
         box.h += (target.h - box.h) * k
       }
 
-      if (reading) reader.tick({ now, activity: env, jaw })
+      if (reading) reader.tick({ now, activity: env, jaw, source: video })
 
       // ---- overlay ------------------------------------------------------
       const dpr = fit(overlay)

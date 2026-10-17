@@ -1,8 +1,8 @@
 /**
  * Lip-reading engine interface + a mock implementation.
  *
- * The UI only depends on `LipReader`. `BackendLipReader` (./backend.ts) talks to
- * the Auto-AVSR server; `MockLipReader` is the offline fallback.
+ * The UI only depends on `LipReader`. `StreamLipReader` (./backend.ts) talks to
+ * the lip-reading server; `MockLipReader` is the offline fallback.
  */
 
 export type ReaderStatus = 'idle' | 'recording' | 'processing'
@@ -12,8 +12,10 @@ export type ReaderEvent =
   | { type: 'interim'; text: string }
   | { type: 'word'; text: string; confidence: number }
   | { type: 'commit' }
-  // clip-based recognition (backend)
+  // phrase-based recognition (backend)
   | { type: 'status'; status: ReaderStatus }
+  /** the in-progress phrase so far; replaces the previous partial */
+  | { type: 'partial'; text: string }
   /** `phrase` is only set by servers that snap to a fixed phrase list (null = no match) */
   | { type: 'result'; raw: string; phrase?: string | null; seconds?: number; error?: string }
 
@@ -23,6 +25,8 @@ export type FrameInput = {
   activity: number
   /** 0..1 — MediaPipe `jawOpen` blendshape */
   jaw: number
+  /** the camera video, for readers that send frames */
+  source?: HTMLVideoElement
 }
 
 export interface LipReader {
@@ -31,8 +35,6 @@ export interface LipReader {
   flush(): void
   reset(): void
   on(listener: (e: ReaderEvent) => void): () => void
-  /** give the reader the camera stream, for readers that record clips */
-  attach?(stream: MediaStream | null): void
 }
 
 const CORPUS = [

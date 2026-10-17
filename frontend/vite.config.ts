@@ -8,13 +8,9 @@ const backend = process.env.BACKEND_URL ?? 'http://localhost:8000'
 export default defineConfig({
   plugins: [react()],
   server: {
-    proxy: {
-      '/api': { target: backend, changeOrigin: true, rewrite: (p) => p.replace(/^\/api/, '') },
-    },
+    proxy: { '/api': { target: backend, changeOrigin: true, ws: true, rewrite: (p) => p.replace(/^\/api/, '') } },
   },
   preview: {
-    proxy: {
-      '/api': { target: backend, changeOrigin: true, rewrite: (p) => p.replace(/^\/api/, '') },
-    },
+    proxy: { '/api': { target: backend, changeOrigin: true, ws: true, rewrite: (p) => p.replace(/^\/api/, '') } },
   },
 })

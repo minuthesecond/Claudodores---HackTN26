@@ -1,9 +1,13 @@
 # UNSPOKEN — frontend
 
-Browser UI for the lip reader. It tracks the face with MediaPipe, cuts a clip each time
-you mouth a phrase (same jawOpen/pause rules as `lipread/live.py`), and sends it to
-[`../lipread/server.py`](../lipread/server.py), which runs live.py's pipeline
-(Face Landmarker keypoints → Auto-AVSR LRS3_V_WER19.1 + language model) on it.
+Browser UI for the lip reader. While reading, it streams camera frames over a WebSocket
+to [`../lipread/server.py`](../lipread/server.py), which runs live.py's loop on them
+(jawOpen phrase segmentation → Face Landmarker keypoints → Auto-AVSR LRS3_V_WER19.1 +
+language model). Text updates about twice a second while you mouth a phrase, and the
+full decode finalizes the line ~1.7 s after you pause.
+
+Latency knobs (env vars for `./run.sh`): `PAUSE` (0.7 s; live.py uses 1.0),
+`FINAL_BEAM` (10; live.py uses 40), `PARTIAL_BEAM` (4), `PARTIAL_EVERY` (0.5 s).
 
 ## Run
 
@@ -28,8 +32,8 @@ Add `?simulate` to the URL to fake lip movement without a face (useful for demos
 
 ## Where things are
 
-- `../lipread/server.py`: HTTP wrapper around live.py's pipeline
-- `src/lib/backend.ts`: phrase segmentation, clip recording and `/transcribe` calls
+- `../lipread/server.py`: WebSocket/HTTP wrapper around live.py's pipeline
+- `src/lib/backend.ts`: frame streaming and server messages
 - `src/lib/reader.ts`: reader interface and the offline mock
 - `src/components/Stage.tsx`: camera, face tracking, overlays
 - `src/components/Transcript.tsx`: transcript panel

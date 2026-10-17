@@ -841,7 +841,7 @@ button:disabled {
 
 .word {
   display: inline;
-  animation: word-in 0.18s steps(2) both;
+  animation: word-in 0.8s linear;
 }
 
 .word.is-unsure {
@@ -939,9 +939,10 @@ button:disabled {
 }
 
 /* -------------------------------------------------------------- animations */
+/* new or corrected words land in the accent color, then settle */
 @keyframes word-in {
   from {
-    opacity: 0;
+    color: var(--accent);
   }
 }
 

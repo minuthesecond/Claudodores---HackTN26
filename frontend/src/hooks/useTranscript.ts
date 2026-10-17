@@ -18,8 +18,12 @@ type Action = (ReaderEvent & { at: number }) | { type: 'clear' }
 
 let uid = 0
 
-const toWords = (text: string, confidence = 1): Word[] =>
-  text.split(/\s+/).filter(Boolean).map((w) => ({ id: ++uid, text: w, confidence }))
+/** Words for `text`, keeping the ids (and so the DOM) of words unchanged from `prev`. */
+const toWords = (text: string, prev: Word[] = []): Word[] =>
+  text
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w, i) => (prev[i]?.text === w ? prev[i] : { id: ++uid, text: w, confidence: 1 }))
 
 function reducer(s: State, a: Action): State {
   switch (a.type) {
@@ -48,14 +52,27 @@ function reducer(s: State, a: Action): State {
       return a.status === 'recording'
         ? { ...s, status: a.status, currentAt: a.at, currentId: s.currentId || ++uid }
         : { ...s, status: a.status }
+    case 'partial':
+      return {
+        ...s,
+        current: toWords(a.text, s.current),
+        currentId: s.currentId || ++uid,
+        currentAt: s.currentId ? s.currentAt : a.at,
+      }
     case 'result': {
       const { type: _, at, ...result } = a
       return {
         ...s,
         lines: [
           ...s.lines,
-          { id: s.currentId || ++uid, at: s.currentAt || at, words: toWords(result.phrase ?? result.raw), result },
+          {
+            id: s.currentId || ++uid,
+            at: s.currentAt || at,
+            words: toWords(result.phrase ?? result.raw, s.current),
+            result,
+          },
         ],
+        current: [],
         currentId: 0,
         currentAt: 0,
       }

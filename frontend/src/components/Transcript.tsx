@@ -121,14 +121,14 @@ export function Transcript(p: Props) {
               <li key={p.currentId} className="line is-current">
                 <time className="mono">{fmt(p.currentAt)}</time>
                 <div>
-                  {pending ? (
-                    <p className="pending">
-                      {p.status === 'recording' ? 'Recording phrase' : 'Reading lips'}
-                      <span className="caret" />
-                    </p>
-                  ) : (
+                  {p.current.length || p.interim ? (
                     <p>
                       <Words words={p.current} interim={p.interim} caret />
+                    </p>
+                  ) : (
+                    <p className="pending">
+                      {p.status === 'recording' ? 'Reading lips' : 'Finishing'}
+                      <span className="caret" />
                     </p>
                   )}
                 </div>

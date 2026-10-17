@@ -6,7 +6,7 @@ import { Logo } from './components/Icons'
 import { useCamera } from './hooks/useCamera'
 import { useTranscript } from './hooks/useTranscript'
 import { MockLipReader } from './lib/reader'
-import { BackendLipReader, checkHealth, type Health } from './lib/backend'
+import { StreamLipReader, checkHealth, type Health } from './lib/backend'
 
 export default function App() {
   const camera = useCamera()
@@ -28,10 +28,9 @@ export default function App() {
   }, [])
   const online = !!health
   const mock = useMemo(() => new MockLipReader(), [])
-  const backend = useMemo(() => new BackendLipReader(), [])
+  const backend = useMemo(() => new StreamLipReader(), [])
   const reader = online ? backend : mock
 
-  useEffect(() => backend.attach(camera.stream), [backend, camera.stream])
   useEffect(() => (online ? mock : backend).reset(), [online, mock, backend])
 
   const [reading, setReading] = useState(false)
@@ -112,9 +111,9 @@ export default function App() {
   const [label, tone]: [string, ChipTone] = !reading
     ? ['Preview', 'idle']
     : t.status === 'recording'
-      ? ['Recording', 'rec']
+      ? ['Reading lips', 'rec']
       : t.status === 'processing'
-        ? ['Reading lips', 'proc']
+        ? ['Finishing', 'proc']
         : online
           ? ['Listening', 'listen']
           : ['Reading', 'rec']
