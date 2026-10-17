@@ -8,6 +8,9 @@ finalizes it.
 
 POST /transcribe: one-shot decode of an uploaded clip (handy for testing).
 
+Frames are queued as they arrive and tracked on a per-connection thread; the model runs
+in its own process (decoder.py), so a decode never slows frame handling down.
+
 Run:  python lipread/server.py [--port 8000]
 Test: python lipread/server.py --test talking.MOV
 """
@@ -15,6 +18,7 @@ import argparse
 import asyncio
 import json
 import os
+import queue
 import struct
 import tempfile
 import threading
@@ -27,8 +31,9 @@ import av
 import cv2
 import numpy as np
 
+from decoder import Decoder
 from mouth import JAW_OPEN, MouthTracker
-from vsr import LipReader, keypoints, resample
+from vsr import keypoints, resample
 
 env = lambda name, default: type(default)(os.environ.get(name, default))
 
@@ -45,9 +50,9 @@ FINAL_BEAM = env("FINAL_BEAM", 40)  # live.py's config
 PARTIAL_BEAM = env("PARTIAL_BEAM", 4)  # in-progress text only; finals always use FINAL_BEAM
 PARTIAL_EVERY = env("PARTIAL_EVERY", 0.5)  # seconds between partial decodes
 
-print("loading lip-reading model...")
-reader = LipReader()
-model_lock = threading.Lock()
+STATS_EVERY = 5.0  # seconds between per-connection frame-rate log lines
+
+decoder = None  # set in main(); a spawned worker re-imports this module, so no work at import time
 model_pool = ThreadPoolExecutor(max_workers=1)  # one decode at a time, like live.py
 
 
@@ -55,9 +60,7 @@ def read(clip, beam=FINAL_BEAM):
     """clip: list of (rgb frame, keypoints or None, seconds). Returns lower-case text."""
     frames, kps, times = zip(*clip)
     frames, kps = resample(list(frames), list(kps), list(times))
-    with model_lock:
-        reader.pipe.model.beam_search.beam_size = beam
-        return reader(frames, kps).strip().lower()
+    return decoder(frames, kps, beam)
 
 
 class Session:
@@ -74,6 +77,37 @@ class Session:
         self.last_partial = 0.0
         self.final = None
         self.partial = None
+        # Frames queue up here and are tracked in order on this session's own thread.
+        self.inbox = queue.Queue()
+        self.received = self.tracked = 0
+        self.stats_at = time.time()
+        threading.Thread(target=self._run, daemon=True).start()
+
+    def push(self, jpeg, t):
+        self.received += 1
+        self.inbox.put((jpeg, t))
+
+    def request_flush(self):
+        self.inbox.put("flush")
+
+    def close(self):
+        self.inbox.put(None)
+
+    def _run(self):
+        while (item := self.inbox.get()) is not None:
+            if item == "flush":
+                self.flush()
+                continue
+            self.on_frame(*item)
+            self.tracked += 1
+            now = time.time()
+            if now - self.stats_at >= STATS_EVERY:
+                span = now - self.stats_at
+                print(f"stream: received {self.received / span:.0f} fps, tracked {self.tracked / span:.0f} fps, "
+                      f"backlog {self.inbox.qsize()}", flush=True)
+                self.received = self.tracked = 0
+                self.stats_at = now
+        self.tracker.lm.close()
 
     def on_frame(self, jpeg, t):
         bgr = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
@@ -155,16 +189,13 @@ class Session:
         self.emit(msg)
         self.emit({"type": "status", "status": "idle"})
 
-    def close(self):
-        self.tracker.lm.close()
-
 
 def running(future):
     return future is not None and not future.done()
 
 
 # ---------- one-shot clips ----------
-clip_tracker = MouthTracker()
+clip_tracker = None  # set in main()
 clip_lock = threading.Lock()
 
 
@@ -212,7 +243,7 @@ def make_app():
 
     @app.get("/health")
     def health():
-        return {"ok": True, "device": reader.device, "model": "LRS3_V_WER19.1", "stream": True}
+        return {"ok": True, "device": decoder.device, "model": "LRS3_V_WER19.1", "stream": True}
 
     @app.post("/transcribe")
     def transcribe_endpoint(file: UploadFile = File(...)):
@@ -245,11 +276,9 @@ def make_app():
                     break
                 if msg.get("bytes"):
                     data = msg["bytes"]
-                    t = struct.unpack("<d", data[:8])[0] / 1000
-                    # Tracking runs off the event loop; awaiting it keeps frames in order.
-                    await loop.run_in_executor(None, session.on_frame, data[8:], t)
+                    session.push(data[8:], struct.unpack("<d", data[:8])[0] / 1000)
                 elif msg.get("text") and json.loads(msg["text"]).get("type") == "flush":
-                    await loop.run_in_executor(None, session.flush)
+                    session.request_flush()
         except WebSocketDisconnect:
             pass
         finally:
@@ -264,6 +293,10 @@ if __name__ == "__main__":
     ap.add_argument("--test", help="run once on a video file and print the result")
     ap.add_argument("--port", type=int, default=8000)
     opts = ap.parse_args()
+
+    print("loading lip-reading model...")
+    decoder = Decoder()
+    clip_tracker = MouthTracker()
 
     if opts.test:
         print(transcribe(opts.test))

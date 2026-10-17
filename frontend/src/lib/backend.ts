@@ -1,7 +1,8 @@
 /**
  * Talks to the lip-reading server in ../../lipread/server.py.
  *
- * While reading, camera frames stream over a WebSocket. The server runs
+ * While reading, camera frames stream over a WebSocket (owned by
+ * ./frameWorker.ts, which also does the JPEG encoding). The server runs
  * lipread/live.py's loop on them (phrase segmentation, Face Landmarker
  * keypoints, Auto-AVSR) and sends back:
  *   status  — recording | processing | idle
@@ -13,12 +14,8 @@ import type { FrameInput, LipReader, ReaderEvent, ReaderStatus } from './reader'
 /** Dev: Vite proxies /api (HTTP + WebSocket) to the server (see vite.config.ts). */
 export const API = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api'
 
-// Send every camera frame (webcams run at ~30 fps; the server resamples to the
-// model's 25) at the same size the server works at, so the mouth crop stays sharp.
-const MIN_FRAME_MS = 30
-const SEND_SIDE = 960
-const JPEG_QUALITY = 0.92
-const MAX_BUFFERED = 512 * 1024 // skip frames rather than queue them if the link is slow
+const FRAME_MS = 30 // webcams run at ~30 fps; the server resamples to the model's 25
+const MAX_IN_FLIGHT = 6 // frames grabbed but not yet handed to the worker
 const RETRY_MS = 2000
 
 export type Health = { ok: boolean; device?: string; model?: string }
@@ -45,12 +42,11 @@ type ServerMessage =
 
 export class StreamLipReader implements LipReader {
   private listeners = new Set<(e: ReaderEvent) => void>()
-  private ws: WebSocket | null = null
+  private worker: Worker | null = null
+  private state: 'closed' | 'connecting' | 'open' = 'closed'
   private retryAt = 0
   private lastSent = 0
-  private lastFrameTime = -1
-  private sending = false
-  private canvas = document.createElement('canvas')
+  private inFlight = 0
 
   on(listener: (e: ReaderEvent) => void) {
     this.listeners.add(listener)
@@ -59,65 +55,45 @@ export class StreamLipReader implements LipReader {
 
   tick({ now, source }: FrameInput) {
     if (!source || source.readyState < 2 || !source.videoWidth) return
-    const ws = this.connect(now)
-    if (ws?.readyState !== WebSocket.OPEN) return
-    if (this.sending || ws.bufferedAmount > MAX_BUFFERED) return
-    // only new camera frames, and never faster than the camera
-    if (source.currentTime === this.lastFrameTime || now - this.lastSent < MIN_FRAME_MS) return
+    this.connect(now)
+    if (this.state !== 'open' || now - this.lastSent < FRAME_MS || this.inFlight >= MAX_IN_FLIGHT) return
 
+    // Grabbing a bitmap is a cheap GPU copy; encoding and sending happen in the worker.
     this.lastSent = now
-    this.lastFrameTime = source.currentTime
-    this.sending = true
-    const scale = Math.min(1, SEND_SIDE / Math.max(source.videoWidth, source.videoHeight))
-    const w = Math.round(source.videoWidth * scale)
-    const h = Math.round(source.videoHeight * scale)
-    if (this.canvas.width !== w || this.canvas.height !== h) Object.assign(this.canvas, { width: w, height: h })
-    this.canvas.getContext('2d')!.drawImage(source, 0, 0, w, h)
-    this.canvas.toBlob(
-      async (blob) => {
-        // Frames go out strictly in order: the server's tracker needs increasing timestamps.
-        try {
-          if (!blob || ws.readyState !== WebSocket.OPEN) return
-          const msg = new Uint8Array(8 + blob.size)
-          new DataView(msg.buffer).setFloat64(0, now, true)
-          msg.set(new Uint8Array(await blob.arrayBuffer()), 8)
-          ws.send(msg)
-        } finally {
-          this.sending = false
-        }
-      },
-      'image/jpeg',
-      JPEG_QUALITY,
-    )
+    this.inFlight++
+    createImageBitmap(source)
+      .then((bitmap) => this.worker?.postMessage({ type: 'frame', bitmap, t: now }, [bitmap]))
+      .catch(() => {})
+      .finally(() => this.inFlight--)
   }
 
   flush() {
-    if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ type: 'flush' }))
+    this.worker?.postMessage({ type: 'flush' })
   }
 
   reset() {
-    const ws = this.ws
-    this.ws = null
-    ws?.close()
+    this.worker?.postMessage({ type: 'close' })
+    this.state = 'closed'
     this.retryAt = 0
     this.emit({ type: 'status', status: 'idle' })
   }
 
   private connect(now: number) {
-    if (this.ws && this.ws.readyState <= WebSocket.OPEN) return this.ws
-    if (now < this.retryAt) return null
+    if (this.state !== 'closed' || now < this.retryAt) return
     this.retryAt = now + RETRY_MS
-
-    const ws = new WebSocket(streamUrl())
-    ws.binaryType = 'arraybuffer'
-    ws.onmessage = (e) => this.handle(JSON.parse(e.data as string) as ServerMessage)
-    ws.onclose = () => {
-      if (this.ws !== ws) return
-      this.ws = null
-      this.emit({ type: 'status', status: 'idle' })
+    if (!this.worker) {
+      this.worker = new Worker(new URL('./frameWorker.ts', import.meta.url), { type: 'module' })
+      this.worker.onmessage = (e: MessageEvent<{ type: string; data?: string }>) => {
+        const m = e.data
+        if (m.type === 'open') this.state = 'open'
+        else if (m.type === 'closed') {
+          this.state = 'closed'
+          this.emit({ type: 'status', status: 'idle' })
+        } else if (m.data) this.handle(JSON.parse(m.data) as ServerMessage)
+      }
     }
-    this.ws = ws
-    return ws
+    this.state = 'connecting'
+    this.worker.postMessage({ type: 'connect', url: streamUrl() })
   }
 
   private handle(m: ServerMessage) {
