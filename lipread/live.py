@@ -2,6 +2,10 @@
 Start mouthing a phrase; when you pause, the model's guess appears under the video.
 Keys: space = finish the current phrase now, c = clear the on-screen captions, q = quit.
 Every caption is also saved to a JSON file (lipread/captions.json by default) as soon as it is read.
+With --phrases FILE, each caption is picked from that list: when the phrase the model scores highest and
+the phrase closest to its free-form guess agree, that phrase is shown; if they disagree, both are shown
+with a "?"; if the guess isn't close to any phrase, the guess itself is shown. The guess is always shown
+underneath as "heard: ...".
 """
 import argparse
 import json
@@ -17,7 +21,7 @@ import numpy as np
 from mediapipe.tasks.python import vision
 
 from mouth import JAW_OPEN, N_FEATURES, MouthTracker, read_video
-from phrase import MOVING, STILL, clip_from_stream, consensus, read_variants
+from phrase import MOVING, STILL, clip_from_stream, consensus, load_phrases, pick_phrase, read_variants
 from vsr import LipReader, keypoints
 
 ap = argparse.ArgumentParser()
@@ -30,13 +34,19 @@ ap.add_argument("--vote", action="store_true", help="read 3 windows and keep the
 ap.add_argument("--max-seconds", type=float, default=8.0)
 ap.add_argument("--captions", default=str(Path(__file__).resolve().parent / "captions.json"),
                 help="JSON file rewritten whenever the status changes or a caption is read")
+ap.add_argument("--phrases", help="text file of allowed phrases (one per line, or id|phrase like sentences.txt)")
 args = ap.parse_args()
+if args.phrases and args.vote:
+    raise SystemExit("use --phrases or --vote, not both")
+phrases = load_phrases(args.phrases) if args.phrases else None
 
 LIPS = [(c.start, c.end) for c in vision.FaceLandmarksConnections.FACE_LANDMARKS_LIPS]
 PREROLL = 0.6  # seconds kept before the phrase starts
 
 print("loading lip-reading model...")
 reader = LipReader()
+for p in phrases or []:
+    reader.tokens(p)  # fail now, not mid-session, if a phrase can't be spelled with the model's word pieces
 tracker = MouthTracker()
 pool = ThreadPoolExecutor(max_workers=1)
 
@@ -82,12 +92,24 @@ def save_captions(status):
 def add_caption(job):
     future, start, end = job
     try:
-        text = future.result().strip().lower() or "(nothing)"
+        raw, ranked = future.result()
+        raw = raw.strip().lower() or "(nothing)"
     except Exception as e:  # e.g. no face found in the clip
-        text = f"(error: {e})"
-    captions.append({"id": len(captions) + 1, "text": text, "started": iso(start), "ended": iso(end),
-                     "seconds": round(end - start, 2)})
-    history.append(text)
+        raw, ranked = f"(error: {e})", None
+    entry = {"id": len(captions) + 1, "text": raw, "raw": raw, "started": iso(start), "ended": iso(end),
+             "seconds": round(end - start, 2)}
+    shown = [raw]  # caption lines on screen
+    if ranked:
+        match, scored, near = pick_phrase(raw, ranked, phrases)
+        entry.update(match=match, scored=scored, nearest=near)
+        if match:
+            entry["text"] = match
+            shown = [match, f"heard: {raw}"]
+        elif near:  # the two matchers disagree: show both rather than guess
+            shown = [f"? {scored} | {near}", f"heard: {raw}"]
+        # else: the guess isn't close to any phrase, so show the guess itself
+    captions.append(entry)
+    history.append(shown)
 
 
 def wrap(text, width=38):
@@ -104,8 +126,8 @@ def transcribe(items):
     frames, kps, times, jaw, feat = zip(*items)
     clip = clip_from_stream(list(frames), list(kps), list(times), list(jaw), list(feat))
     if args.vote:
-        return consensus(read_variants(reader, clip))
-    return reader(clip.frames, clip.kps)
+        return consensus(read_variants(reader, clip)), None
+    return reader.read(clip.frames, clip.kps, phrases)
 
 
 history, pending = [], None  # on-screen guesses (newest last), in-flight (future, start, end)
@@ -167,7 +189,7 @@ for frame, now in (video_frames() if args.video else camera_frames()):
         cv2.putText(frame, "no face", (20, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
     # caption bar with the latest guesses
-    lines = [l for g in history[-2:] for l in wrap(g)][-4:]
+    lines = [l for entry in history[-2:] for part in entry for l in wrap(part)][-5:]
     if lines:
         bar = 40 + 38 * len(lines)
         cv2.rectangle(frame, (0, h - bar), (w, h), (0, 0, 0), -1)

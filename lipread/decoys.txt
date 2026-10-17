@@ -1,0 +1,32 @@
+# Look-alike sentences that were never recorded. evaluate.py --decoys adds them to the phrase list,
+# so matching has to pick the right sentence out of 44 instead of 14.
+my name is dustin
+my aim is just in
+hi my name is jason
+the quick brown cat jumps over the lazy fox
+the quick red fox runs past the lazy dog
+the green boat drifted past the empty beach
+the green boxes drifted past the empty pier
+we found a small purple bottle by the door
+we found a small paper umbrella by the window
+please move the table from my brother's bottle
+please remove the bottle from my mother's table
+five wooden chairs stood near the old mountain
+five broken chairs stood near the new fountain
+she poured fresh coffee into three cups
+he poured fresh milk into three mugs
+a heavy truck crossed the narrow bridge
+a heavy rock blocked the narrow road
+my uncle bought fifty pounds of apples
+my aunt bought sixty pounds of potatoes
+they watched the yellow lights over the beach
+they watched the yellow kites over the bridge
+turn right at the big white barn
+turn left at the big white house
+nobody knew why the music started
+nobody knew why the movie stopped
+put the blue book on the bottom shelf
+put the black box on the top shelf
+justin brought two pizzas for dinner
+justin bought two pieces for everyone
+dustin brought two pizzas for everyone

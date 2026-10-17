@@ -53,20 +53,55 @@ def speech_span(clip):
     return (moving[0], moving[-1]) if len(moving) else None
 
 
-def read_variants(reader, clip, pads=VOTE):
-    """One transcript per (before, after) padding around the speech. pads[0] comes first."""
+def window(clip, pre, post):
+    """(frames, kps) from `pre` seconds before the lips start moving to `post` seconds after they stop,
+    or None if they never move."""
     span = speech_span(clip)
     if span is None:
+        return None
+    i0 = max(0, span[0] - int(pre * MODEL_FPS))
+    i1 = min(len(clip.frames), span[1] + int(post * MODEL_FPS) + 1)
+    return clip.frames[i0:i1], clip.kps[i0:i1]
+
+
+def read_variants(reader, clip, pads=VOTE):
+    """One transcript per (before, after) padding around the speech. pads[0] comes first."""
+    if speech_span(clip) is None:
         return []
     out = []
     for pre, post in pads:
-        i0 = max(0, span[0] - int(pre * MODEL_FPS))
-        i1 = min(len(clip.frames), span[1] + int(post * MODEL_FPS) + 1)
         try:
-            out.append(reader(clip.frames[i0:i1], clip.kps[i0:i1]).strip().lower())
+            out.append(reader(*window(clip, pre, post)).strip().lower())
         except Exception:  # e.g. no face found in this window
             out.append("")
     return out
+
+
+def nearest_phrase(text, phrases):
+    """The phrase whose words are closest to `text` (word edits, relative to the phrase's length), or None
+    when nothing is close: no phrase shares a word with `text` (e.g. "hello"), or several tie for closest."""
+    if not words(text):
+        return None
+    dist = sorted((word_errors(p, text) / len(words(p)), i) for i, p in enumerate(phrases))
+    if dist[0][0] >= 1 or (len(dist) > 1 and dist[0][0] == dist[1][0]):
+        return None
+    return phrases[dist[0][1]]
+
+
+def pick_phrase(text, ranked, phrases):
+    """Combine two matchers: the phrase the model scores highest, and the phrase closest to the free-form
+    guess. Returns (match, scored, nearest); match is only set when the two agree, otherwise it's None.
+    nearest is None when the guess isn't close to any phrase (the speaker probably said something unlisted).
+    On the test clips, agreeing picks were right 44 of 45 times; disagreements were often wrong either way."""
+    scored = ranked[0][0]
+    near = nearest_phrase(text, phrases)
+    return (scored if scored == near else None), scored, near
+
+
+def load_phrases(path):
+    """Phrases from a text file: one per line, either `id|phrase` or just the phrase. # starts a comment."""
+    lines = (line.strip() for line in open(path, encoding="utf-8"))
+    return [line.split("|", 1)[-1].strip() for line in lines if line and not line.startswith("#")]
 
 
 def words(text):
