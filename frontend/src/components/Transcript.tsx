@@ -44,10 +44,11 @@ const lineText = (l: Line) => l.words.map((w) => w.text).join(' ') || (l.result?
 const toText = (lines: Line[]) => lines.map((l) => `[${fmt(l.at)}] ${lineText(l)}`).join('\n')
 
 function resultMeta(r: LineResult) {
-  const time = r.seconds !== undefined ? ` / ${r.seconds.toFixed(2)}S` : ''
+  const time = r.seconds !== undefined ? `${r.seconds.toFixed(2)}S` : ''
   if (r.error) return r.error
-  if (r.phrase) return `Model read: ${r.raw || '—'}${time}`
-  return `No phrase match${time}`
+  if (r.phrase) return `Model read: ${r.raw || '—'} / ${time}`
+  if (r.phrase === null) return `No phrase match / ${time}`
+  return r.raw ? `Read in ${time}` : `Nothing read / ${time}`
 }
 
 export function Transcript(p: Props) {
@@ -111,7 +112,7 @@ export function Transcript(p: Props) {
                 <div>
                   <p>{l.words.length ? <Words words={l.words} interim={null} /> : l.result?.error ? 'Not read' : '—'}</p>
                   {l.result && (
-                    <span className={`line-meta mono ${l.result.phrase ? '' : 'is-warn'}`}>{resultMeta(l.result)}</span>
+                    <span className={`line-meta mono ${l.result.phrase === null || (!l.result.raw && !l.result.error) ? 'is-warn' : ''}`}>{resultMeta(l.result)}</span>
                   )}
                 </div>
               </li>

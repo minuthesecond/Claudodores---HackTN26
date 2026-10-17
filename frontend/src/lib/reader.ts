@@ -14,7 +14,8 @@ export type ReaderEvent =
   | { type: 'commit' }
   // clip-based recognition (backend)
   | { type: 'status'; status: ReaderStatus }
-  | { type: 'result'; raw: string; phrase: string | null; seconds?: number; error?: string }
+  /** `phrase` is only set by servers that snap to a fixed phrase list (null = no match) */
+  | { type: 'result'; raw: string; phrase?: string | null; seconds?: number; error?: string }
 
 export type FrameInput = {
   now: number

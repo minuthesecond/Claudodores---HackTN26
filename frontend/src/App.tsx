@@ -123,7 +123,7 @@ export default function App() {
   const stats: StatItem[] = online
     ? [
         { label: 'Phrases', value: String(t.results) },
-        { label: 'Matched', value: pct(t.matched, t.results), bar: t.results ? t.matched / t.results : 0 },
+        { label: 'Words', value: String(t.wordCount) },
         { label: 'Latency', value: t.avgSeconds === null ? '—' : `${t.avgSeconds.toFixed(1)}s` },
       ]
     : [
@@ -143,7 +143,7 @@ export default function App() {
         <dl className="topbar-meta">
           <div>
             <dt>Model</dt>
-            <dd>{online ? 'AUTO-AVSR' : 'MOCK'}</dd>
+            <dd>{online ? (health.model ?? 'AUTO-AVSR') : 'MOCK'}</dd>
           </div>
           <div className="hide-sm">
             <dt>Backend</dt>

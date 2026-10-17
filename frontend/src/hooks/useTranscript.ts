@@ -2,7 +2,7 @@ import { useEffect, useReducer } from 'react'
 import type { LipReader, ReaderEvent, ReaderStatus } from '../lib/reader'
 
 export type Word = { id: number; text: string; confidence: number }
-export type LineResult = { raw: string; phrase: string | null; seconds?: number; error?: string }
+export type LineResult = { raw: string; phrase?: string | null; seconds?: number; error?: string }
 export type Line = { id: number; at: number; words: Word[]; result?: LineResult }
 
 type State = {
@@ -84,7 +84,6 @@ export function useTranscript(reader: LipReader, clock: () => number) {
     wordCount: all.length,
     confidence,
     results: results.length,
-    matched: results.filter((r) => r.phrase).length,
     avgSeconds: timed.length ? timed.reduce((n, r) => n + r.seconds!, 0) / timed.length : null,
     clear: () => dispatch({ type: 'clear' }),
   }

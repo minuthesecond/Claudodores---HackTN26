@@ -1,13 +1,14 @@
 # UNSPOKEN — frontend
 
 Browser UI for the lip reader. It tracks the face with MediaPipe, cuts a clip each time
-you mouth a phrase (same jawOpen/pause rules as `lipread/live.py`), and sends it to the
-Auto-AVSR server in [`../avsr`](../avsr) to be transcribed and matched to an ICU phrase.
+you mouth a phrase (same jawOpen/pause rules as `lipread/live.py`), and sends it to
+[`../lipread/server.py`](../lipread/server.py), which runs live.py's pipeline
+(Face Landmarker keypoints → Auto-AVSR LRS3_V_WER19.1 + language model) on it.
 
 ## Run
 
-1. Start the backend: `avsr/setup.sh` once (≈1 GB model download), then `avsr/run.sh`.
-   It listens on `:8000` and takes ~20 s to load the model.
+1. Start the backend: `./setup.sh` once from the repo root (≈1.1 GB of models), then
+   `./run.sh`. It listens on `:8000` and takes ~10 s to load the model.
 2. Start the frontend:
 
    ```sh
@@ -27,6 +28,7 @@ Add `?simulate` to the URL to fake lip movement without a face (useful for demos
 
 ## Where things are
 
+- `../lipread/server.py`: HTTP wrapper around live.py's pipeline
 - `src/lib/backend.ts`: phrase segmentation, clip recording and `/transcribe` calls
 - `src/lib/reader.ts`: reader interface and the offline mock
 - `src/components/Stage.tsx`: camera, face tracking, overlays

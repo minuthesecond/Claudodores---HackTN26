@@ -1,10 +1,10 @@
 /**
- * Talks to the Auto-AVSR server in ../../avsr/avsr_server.py.
+ * Talks to the lip-reading server in ../../lipread/server.py.
  *
  * Segments phrases exactly like lipread/live.py (jawOpen thresholds + pause),
  * records each phrase from the camera with MediaRecorder, and POSTs the clip
- * to /transcribe. The server crops the mouth, runs the model and snaps the
- * guess to the closest ICU phrase.
+ * to /transcribe. The server runs live.py's pipeline on it and returns text.
+ * (avsr/avsr_server.py speaks the same API and also returns a snapped `phrase`.)
  */
 import type { FrameInput, LipReader, ReaderEvent } from './reader'
 
@@ -31,7 +31,7 @@ const MIME =
 type Rec = { rec: MediaRecorder; chunks: Blob[]; startedAt: number }
 type Result = Extract<ReaderEvent, { type: 'result' }>
 
-export type Health = { ok: boolean; device?: string }
+export type Health = { ok: boolean; device?: string; model?: string }
 
 export async function checkHealth(): Promise<Health | null> {
   try {
@@ -171,8 +171,8 @@ async function send(blob: Blob): Promise<Result> {
     const res = await fetch(`${API}/transcribe`, { method: 'POST', body: form })
     if (!res.ok) throw new Error(`Server returned ${res.status}`)
     const d = (await res.json()) as { raw?: string; phrase?: string | null; seconds?: number; error?: string }
-    return { type: 'result', raw: d.raw ?? '', phrase: d.phrase ?? null, seconds: d.seconds, error: d.error }
+    return { type: 'result', raw: d.raw ?? '', phrase: d.phrase, seconds: d.seconds, error: d.error }
   } catch (e) {
-    return { type: 'result', raw: '', phrase: null, error: (e as Error).message || 'Request failed' }
+    return { type: 'result', raw: '', error: (e as Error).message || 'Request failed' }
   }
 }
