@@ -1,4 +1,4 @@
-path: /Users/joelchen/.superset/worktrees/oracle-hacks/were-working-facial-ac732d08/Facial Feature Extraction Dataset
+path: ../Facial Feature Extraction Dataset  # relative to this file; train.py makes it absolute
 train: train/images
 val: valid/images
 test: test/images
