@@ -1,0 +1,5 @@
+third_party/
+.venv/
+lipread/runs/
+lipread/*.log
+__pycache__/
