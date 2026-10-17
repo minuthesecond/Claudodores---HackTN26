@@ -77,7 +77,7 @@ export function Landing() {
       </section>
 
       {/* ------------------------------------------------------ film strip */}
-      <section className="lp-film" aria-label="Real lip-reading model input">
+      <section className="lp-film" aria-label="Lip outlines tracked from a real clip">
         {FILM_ROWS.map((row, i) => (
           <div
             key={row}
@@ -86,7 +86,7 @@ export function Landing() {
             style={{ backgroundPositionY: `${(row / 5) * 100}%` }}
           />
         ))}
-        <p className="lp-caption lp-wrap">Real model input · 96 × 96 · 25 frames a second</p>
+        <p className="lp-caption lp-wrap">Lip landmarks from a real clip · 25 frames a second</p>
       </section>
 
       {/* --------------------------------------------------------- problem */}

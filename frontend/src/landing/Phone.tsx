@@ -3,13 +3,13 @@ import { useEffect, useRef } from 'react'
 /**
  * The phone app from the business plan, drawn in code: bank your voice and face
  * before surgery, train, then mouth a phrase, confirm it and hear it in your voice.
- * Mouth footage is the real model input from talking.MOV (public/landing).
+ * Mouth animation: lip landmarks tracked in a real clip, drawn as outlines (no face).
  */
 
-const SPRITE = '/landing/mouth-sprite.png'
+const SPRITE = '/landing/lips-sprite.png'
 const COLS = 13
 const FRAMES = 78
-const SIZE = 96
+const SIZE = 192
 const FPS = 25
 
 let sprite: HTMLImageElement | null = null
@@ -21,7 +21,7 @@ function getSprite() {
   return sprite
 }
 
-/** Plays the real 96×96 mouth crops on a loop. */
+/** Plays the lip-landmark outlines on a loop. */
 export function MouthClip({ className = '' }: { className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
@@ -37,16 +37,15 @@ export function MouthClip({ className = '' }: { className?: string }) {
       const f = still ? 45 : Math.floor(((now - t0) / 1000) * FPS) % FRAMES
       if (f === last || !img.complete) return
       last = f
-      ctx.imageSmoothingEnabled = false
       ctx.drawImage(img, (f % COLS) * SIZE, Math.floor(f / COLS) * SIZE, SIZE, SIZE, 0, 0, canvas.width, canvas.height)
     }
     raf = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(raf)
   }, [])
-  return <canvas ref={ref} width={192} height={192} className={`mouth-clip ${className}`} />
+  return <canvas ref={ref} width={384} height={384} className={`mouth-clip ${className}`} />
 }
 
-/** One still mouth crop from the sprite, as a tile. */
+/** One still lip outline from the sprite, as a tile. */
 export function MouthTile({ frame }: { frame: number }) {
   return (
     <span
