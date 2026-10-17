@@ -6,7 +6,8 @@ Auto-AVSR server in [`../avsr`](../avsr) to be transcribed and matched to an ICU
 
 ## Run
 
-1. Start the backend (see the docstring in `avsr/avsr_server.py`). It listens on `:8000`.
+1. Start the backend: `avsr/setup.sh` once (≈1 GB model download), then `avsr/run.sh`.
+   It listens on `:8000` and takes ~20 s to load the model.
 2. Start the frontend:
 
    ```sh
