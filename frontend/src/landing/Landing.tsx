@@ -155,6 +155,25 @@ export function Landing() {
           </section>
         </Reading>
 
+        {/* ------------------------------------------------- from the floor */}
+        <section className="lp-voice">
+          <figure className="lp-wrap lp-voice-grid">
+            <MouthGlyph live className="lp-voice-glyph" />
+            <div>
+              <blockquote className="lp-voice-quote" data-reveal>
+                <p>
+                  “I think it would be nice for them to see, oh, we actually can communicate, we can understand
+                  each other. It’s not this back and forth of interpreting what they’re saying.”
+                </p>
+              </blockquote>
+              <figcaption className="lp-voice-who" data-reveal>
+                <strong>Celeste</strong>
+                <span>Nurse, Surgical Intensive Care Unit, Vanderbilt University Medical Center</span>
+              </figcaption>
+            </div>
+          </figure>
+        </section>
+
         {/* ------------------------------------------------ the dealt deck */}
         <Story />
 

@@ -1717,3 +1717,63 @@ html:has(.lp) {
     margin-left: 0;
   }
 }
+
+/* --------------------------------------------------- from the floor */
+/* a nurse's own words on a field of the logo's orange, beside the mouth that says them */
+.lp-voice {
+  background: var(--orange);
+  color: var(--ink);
+  padding: clamp(96px, 16vh, 176px) 0;
+}
+
+.lp-voice-grid {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.42fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(32px, 6vw, 96px);
+  margin: 0 auto;
+}
+
+.lp-voice-glyph {
+  width: 100%;
+  max-width: 440px;
+  margin: -12% 0; /* the mouth sits mid-box; let the bars, not the box, set the spacing */
+}
+
+.lp-voice-glyph .glyph-top {
+  fill: var(--ink);
+}
+
+.lp-voice-glyph .glyph-bot {
+  fill: var(--card);
+}
+
+.lp-voice-quote p {
+  font: 700 clamp(26px, 2.9vw, 40px) / 1.22 var(--sans);
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+  max-width: 30ch;
+  text-indent: -0.42em;
+}
+
+.lp-voice-who {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: clamp(28px, 4vh, 44px);
+  font-size: 18px;
+}
+
+.lp-voice-who span {
+  color: var(--on-orange-2);
+}
+
+@media (max-width: 760px) {
+  .lp-voice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-voice-glyph {
+    max-width: 120px;
+  }
+}
