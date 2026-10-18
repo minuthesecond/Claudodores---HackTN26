@@ -9,7 +9,7 @@ import { useTranscript } from './hooks/useTranscript'
 import { MockLipReader } from './lib/reader'
 import { StreamLipReader, checkHealth, type Health } from './lib/backend'
 import { Speaker, checkVoice, type VoiceHealth } from './lib/voice'
-import { VoicebankPanel, VoicePicker, useVoicebank } from '@voicebank'
+import { VoicebankPanel, VoicePicker, logout, useUser, useVoicebank } from '@voicebank'
 import type { Line } from './hooks/useTranscript'
 
 const VOICE_KEY = 'unspoken.voice'
@@ -59,6 +59,7 @@ export default function App() {
   const voiceOnline = !!voiceHealth
 
   // Banked voices (../voicebank). The chosen one is used only while voicebank is up and it's approved.
+  const user = useUser()
   const bank = useVoicebank()
   const [bankOpen, setBankOpen] = useState(false)
   const [chosenVoice, setChosenVoice] = useState<string | null>(savedVoice)
@@ -250,6 +251,16 @@ export default function App() {
             onManage={() => setBankOpen(true)}
           />
         )}
+        <div className="account">
+          {user ? (
+            <>
+              <span className="account-name">{user.name}</span>
+              <button onClick={() => void logout()}>Log out</button>
+            </>
+          ) : (
+            <a href="/login">Log in</a>
+          )}
+        </div>
       </header>
       <VoicebankPanel
         open={bankOpen}

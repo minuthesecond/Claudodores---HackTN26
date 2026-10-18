@@ -1,4 +1,4 @@
-# Unspoken on one machine: the built site, plus the two servers under /api and /voice.
+# Unspoken on one machine: the built site, plus the servers under /api, /voice and /voicebank.
 # {$SITE} is the public hostname, e.g. 147-224-207-225.sslip.io; Caddy gets its certificate.
 {$SITE} {
 	encode zstd gzip
@@ -6,6 +6,13 @@
 	# lip reader: HTTP and the /stream WebSocket
 	handle_path /api/* {
 		reverse_proxy localhost:8000
+	}
+
+	# voicebank: accounts, banked voices, speech in them (uploads up to 500 MB)
+	handle_path /voicebank/* {
+		reverse_proxy localhost:8003 {
+			flush_interval -1
+		}
 	}
 
 	# voice: stream audio as it's generated, don't buffer it

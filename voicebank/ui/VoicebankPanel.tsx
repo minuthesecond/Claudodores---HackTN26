@@ -313,7 +313,7 @@ function VoiceDetail({ id, onApproved, onChanged }: { id: string; onApproved: (i
   )
 }
 
-function Preview({ id, sentence }: { id: string; sentence: string }) {
+export function Preview({ id, sentence }: { id: string; sentence: string }) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
   const say = (t: string) => {
@@ -464,7 +464,7 @@ function Progress({ frac }: { frac: number }) {
 }
 
 /** Guided recording: one take per prompt, re-recordable, with a live level meter. */
-function Recorder({ profile, prompts, onSaved }: { profile: Profile; prompts: string[]; onSaved: (p: Profile) => void }) {
+export function Recorder({ profile, prompts, onSaved }: { profile: Profile; prompts: string[]; onSaved: (p: Profile) => void }) {
   const [active, setActive] = useState<number | null>(null)
   const [saving, setSaving] = useState<number | null>(null)
   const [level, setLevel] = useState(0)

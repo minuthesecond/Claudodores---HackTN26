@@ -5,9 +5,14 @@ lip reader (:8000) and the built-in voice server (:8001), which it doesn't touch
 Run:   ./run.sh                 (makes .venv on first run)
 Test:  ./run.sh --test
 
+  POST   /auth/signup {"username", "password", "name", "claim": [ids]}  -> {"token", "user"}
+  POST   /auth/login {"username", "password"}     -> {"token", "user"}
+  POST   /auth/logout                             -> ends this token's session
+  GET    /auth/me                                 -> the signed-in user
+
   GET    /health                                  -> {"ok", "device", "engine"}
   GET    /prompts                                 -> what to read aloud when recording
-  GET    /profiles                                -> saved voices
+  GET    /profiles[?ids=a,b]                      -> your voices (signed in), plus unowned ones you made (ids)
   POST   /profiles {"name", "consent": true}      -> new draft voice
   GET    /profiles/{id}                           -> voice + its recordings + warnings
   DELETE /profiles/{id}                           -> removes every file of that voice
@@ -20,10 +25,15 @@ Test:  ./run.sh --test
   POST   /profiles/{id}/approve                   -> status -> approved, pre-speaks the ICU phrases
   GET    /speak?profile={id}&text=...             -> .wav (whole file)
   GET    /speak/stream?profile={id}&text=...      -> .wav streamed as it's generated (same format as voice/)
+
+Accounts: send `Authorization: Bearer <token>`. A voice made while signed in belongs to that account and
+only its owner can see or change it. One made before signing up has no owner (whoever has its id can use
+it) until signup claims it. Audio and speech URLs work by id alone, so <audio> elements can play them.
 """
 
 import argparse
 import hashlib
+import sqlite3
 import os
 import queue
 import shutil
@@ -33,6 +43,7 @@ import threading
 import time
 import wave
 
+import auth
 import banking
 import engines
 import prompts
@@ -142,7 +153,7 @@ def upload_worker():
 
 
 def make_app():
-    from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+    from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
     from pydantic import BaseModel
@@ -175,11 +186,71 @@ def make_app():
         engine.warm()
         print("Voicebank ready", flush=True)
 
-    def profile_or_404(pid):
+    def current_user(authorization: str | None = Header(None)):
+        """The signed-in user, or None for a visitor."""
+        token = auth.bearer(authorization)
+        return store.session_user(auth.token_hash(token)) if token else None
+
+    def signed_in(user=Depends(current_user)):
+        if not user:
+            raise HTTPException(401, "Sign in first")
+        return user
+
+    def profile_or_404(pid, user=None, owner_only=True):
+        """A voice; someone else's counts as missing unless `owner_only` is off (audio by id)."""
         p = store.get_profile(pid)
-        if not p:
+        if not p or (owner_only and p.get("user_id") and (not user or user["id"] != p["user_id"])):
             raise HTTPException(404, "No such voice")
         return p
+
+    # ---- accounts
+
+    class Signup(BaseModel):
+        username: str
+        password: str
+        name: str = ""
+        claim: list[str] = []
+
+    class Login(BaseModel):
+        username: str
+        password: str
+
+    def session_for(user):
+        token, hashed, expires = auth.new_token()
+        store.add_session(hashed, user["id"], expires)
+        return {"token": token, "user": user}
+
+    @app.post("/auth/signup")
+    def signup(req: Signup):
+        username = req.username.strip()
+        error = auth.check_signup(username, req.password)
+        if error:
+            raise HTTPException(400, error)
+        try:
+            user = store.create_user(username, (req.name.strip() or username)[:80], auth.hash_password(req.password))
+        except sqlite3.IntegrityError:
+            raise HTTPException(409, "That username is taken")
+        for pid in req.claim[:20]:
+            store.claim_profile(pid, user["id"])
+        return session_for(user)
+
+    @app.post("/auth/login")
+    def login(req: Login):
+        row = store.get_user_login(req.username.strip())
+        if not row or not auth.check_password(req.password, row["password"]):
+            raise HTTPException(401, "Wrong username or password")
+        return session_for(store.get_user(row["id"]))
+
+    @app.post("/auth/logout")
+    def logout(authorization: str | None = Header(None)):
+        token = auth.bearer(authorization)
+        if token:
+            store.delete_session(auth.token_hash(token))
+        return {"ok": True}
+
+    @app.get("/auth/me")
+    def me(user=Depends(signed_in)):
+        return user
 
     @app.get("/health")
     def health():
@@ -194,25 +265,31 @@ def make_app():
         consent: bool = False
 
     @app.get("/profiles")
-    def list_profiles():
-        return [describe(p) for p in store.list_profiles()]
+    def list_profiles(ids: str = "", user=Depends(current_user)):
+        mine = [i for i in ids.split(",") if i][:20]
+        if not user and not mine:
+            return []
+        return [describe(p) for p in store.list_profiles(user["id"] if user else None, mine)]
 
     @app.post("/profiles")
-    def create_profile(req: NewProfile):
+    def create_profile(req: NewProfile, user=Depends(current_user)):
         name = req.name.strip()
         if not name:
             raise HTTPException(400, "Give the voice a name")
         if not req.consent:
             raise HTTPException(400, "Consent is required to bank a voice")
-        return describe(store.create_profile(name[:80]))
+        p = store.create_profile(name[:80])
+        if user:
+            store.claim_profile(p["id"], user["id"])
+        return describe(store.get_profile(p["id"]))
 
     @app.get("/profiles/{pid}")
-    def get_profile(pid: str):
-        return describe(profile_or_404(pid))
+    def get_profile(pid: str, user=Depends(current_user)):
+        return describe(profile_or_404(pid, user))
 
     @app.delete("/profiles/{pid}")
-    def delete_profile(pid: str):
-        profile_or_404(pid)
+    def delete_profile(pid: str, user=Depends(current_user)):
+        profile_or_404(pid, user)
         store.delete_profile(pid)
         _latents.pop(pid, None)
         return {"ok": True}
@@ -234,8 +311,8 @@ def make_app():
 
     @app.post("/profiles/{pid}/media")
     def add_media(pid: str, file: UploadFile = File(...),
-                  kind: str = Form("recording"), prompt: int | None = Form(None)):
-        p = profile_or_404(pid)
+                  kind: str = Form("recording"), prompt: int | None = Form(None), user=Depends(current_user)):
+        p = profile_or_404(pid, user)
         if p["status"] == "building":
             raise HTTPException(409, "Wait for the build to finish")
         if kind not in ("recording", "upload"):
@@ -278,8 +355,8 @@ def make_app():
         return describe(store.get_profile(pid))
 
     @app.delete("/profiles/{pid}/media/{mid}")
-    def delete_media(pid: str, mid: str):
-        profile_or_404(pid)
+    def delete_media(pid: str, mid: str, user=Depends(current_user)):
+        profile_or_404(pid, user)
         store.delete_media(mid)
         store.update_profile(pid, status="draft")
         return describe(store.get_profile(pid))
@@ -292,8 +369,8 @@ def make_app():
         return FileResponse(path, media_type="audio/wav")
 
     @app.post("/profiles/{pid}/build")
-    def build(pid: str):
-        p = profile_or_404(pid)
+    def build(pid: str, user=Depends(current_user)):
+        p = profile_or_404(pid, user)
         if p["status"] == "building":
             raise HTTPException(409, "Already building")
         all_media = store.list_media(pid)
@@ -323,14 +400,14 @@ def make_app():
         return describe(store.get_profile(pid))
 
     @app.post("/profiles/{pid}/redo")
-    def redo(pid: str):
-        profile_or_404(pid)
+    def redo(pid: str, user=Depends(current_user)):
+        profile_or_404(pid, user)
         store.update_profile(pid, status="draft", approved_at=None)
         return describe(store.get_profile(pid))
 
     @app.post("/profiles/{pid}/approve")
-    def approve(pid: str):
-        p = profile_or_404(pid)
+    def approve(pid: str, user=Depends(current_user)):
+        p = profile_or_404(pid, user)
         if p["status"] not in ("preview", "approved"):
             raise HTTPException(409, "Build and preview the voice first")
         store.update_profile(pid, status="approved", approved_at=time.time())
@@ -340,7 +417,7 @@ def make_app():
         return describe(store.get_profile(pid))
 
     def ready_voice(pid):
-        p = profile_or_404(pid)
+        p = profile_or_404(pid, owner_only=False)
         if p["status"] not in ("preview", "approved") or not os.path.isfile(store.latents_path(pid)):
             raise HTTPException(409, "That voice isn't built yet")
         return latents(pid)

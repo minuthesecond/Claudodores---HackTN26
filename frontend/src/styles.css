@@ -1120,3 +1120,36 @@ html:has(.app) body {
 .wm-lip-bot {
   stroke: var(--orange);
 }
+
+/* the reader's account control */
+.account {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: 600 14px/1 var(--sans);
+}
+
+.account-name {
+  color: var(--ink-2);
+  padding-right: 4px;
+}
+
+.account a,
+.account button {
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.account a:hover,
+.account button:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .account-name {
+    display: none;
+  }
+}

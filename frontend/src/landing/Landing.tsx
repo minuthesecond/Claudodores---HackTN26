@@ -60,7 +60,7 @@ export function Landing() {
           <a href="#why">Why it matters</a>
           <a href="#hospitals">For hospitals</a>
         </nav>
-        <a className="lp-btn lp-btn-card lp-nav-cta" href="/app">
+        <a className="lp-btn lp-btn-card lp-nav-cta" href="/start">
           Try the live demo
           <Arrow />
         </a>
@@ -90,7 +90,7 @@ export function Landing() {
                 Unspoken reads a patient’s lips and speaks for them in their own voice, for people who lose
                 it to a laryngectomy or tracheostomy.
               </p>
-              <a className="lp-btn lp-btn-card" href="/app">
+              <a className="lp-btn lp-btn-card" href="/start">
                 Try the live demo
                 <Arrow />
               </a>
@@ -199,7 +199,7 @@ export function Landing() {
               </ul>
               <p>Patients with permanent voice loss can keep using it at home after they leave.</p>
               <div className="lp-actions">
-                <a className="lp-btn lp-btn-ink" href="/app">
+                <a className="lp-btn lp-btn-ink" href="/start">
                   Try the live demo
                   <Arrow />
                 </a>

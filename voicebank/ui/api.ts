@@ -1,6 +1,9 @@
 /**
  * Calls to the voicebank server (../server.py, :8003). Dev: Vite proxies /voicebank to it.
+ * Every call carries the signed-in user's token (./auth.ts), so each account sees its own voices.
  */
+import { authHeaders, guestVoices, rememberGuestVoice } from './auth'
+
 export const VOICEBANK = (import.meta.env.VITE_VOICEBANK_URL as string | undefined) ?? '/voicebank'
 
 export type Status = 'draft' | 'building' | 'preview' | 'approved' | 'failed'
@@ -38,7 +41,7 @@ export type Profile = {
 export type Prompts = { prompts: string[]; preview: string }
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${VOICEBANK}${path}`, init)
+  const res = await fetch(`${VOICEBANK}${path}`, { ...init, headers: { ...init?.headers, ...authHeaders() } })
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`
     try {
@@ -68,9 +71,16 @@ export async function checkVoicebank(): Promise<boolean> {
 }
 
 export const getPrompts = () => call<Prompts>('/prompts')
-export const listProfiles = () => call<Profile[]>('/profiles')
+export const listProfiles = () => {
+  const ids = guestVoices()
+  return call<Profile[]>(ids.length ? `/profiles?ids=${ids.join(',')}` : '/profiles')
+}
 export const getProfile = (id: string) => call<Profile>(`/profiles/${id}`)
-export const createProfile = (name: string, consent: boolean) => call<Profile>('/profiles', json({ name, consent }))
+export async function createProfile(name: string, consent: boolean) {
+  const p = await call<Profile>('/profiles', json({ name, consent }))
+  rememberGuestVoice(p.id)
+  return p
+}
 export const deleteProfile = (id: string) => call<{ ok: true }>(`/profiles/${id}`, { method: 'DELETE' })
 export const buildProfile = (id: string) => call<Profile>(`/profiles/${id}/build`, { method: 'POST' })
 export const redoProfile = (id: string) => call<Profile>(`/profiles/${id}/redo`, { method: 'POST' })
@@ -93,6 +103,7 @@ export function uploadMedia(id: string, file: File, onProgress: (frac: number) =
     form.append('kind', 'upload')
     const xhr = new XMLHttpRequest()
     xhr.open('POST', `${VOICEBANK}/profiles/${id}/media`)
+    for (const [k, v] of Object.entries(authHeaders())) xhr.setRequestHeader(k, v)
     xhr.responseType = 'json'
     xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total)
     xhr.onload = () => {

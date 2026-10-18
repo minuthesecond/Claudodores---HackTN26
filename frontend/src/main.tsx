@@ -5,18 +5,22 @@ import '@fontsource-variable/atkinson-hyperlegible-next/wght.css'
 import '@fontsource-variable/atkinson-hyperlegible-mono/wght.css'
 import './styles.css'
 
-// "/" is the landing page; "/app" is the reader (loaded on demand, it pulls in MediaPipe).
+// "/" is the landing page; "/start" and "/login" are onboarding; "/app" is the reader.
+// The last three load on demand (the reader pulls in MediaPipe).
 const App = lazy(() => import('./App'))
-const isApp = location.pathname.replace(/\/+$/, '') === '/app'
+const Onboarding = lazy(() => import('./onboarding/Onboarding').then((m) => ({ default: m.Onboarding })))
+const path = location.pathname.replace(/\/+$/, '')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {isApp ? (
-      <Suspense fallback={null}>
+    <Suspense fallback={null}>
+      {path === '/app' ? (
         <App />
-      </Suspense>
-    ) : (
-      <Landing />
-    )}
+      ) : path === '/start' || path === '/login' ? (
+        <Onboarding mode={path === '/login' ? 'login' : 'start'} />
+      ) : (
+        <Landing />
+      )}
+    </Suspense>
   </StrictMode>,
 )

@@ -35,6 +35,18 @@ CREATE TABLE IF NOT EXISTS profiles (
     approved_at REAL,
     error TEXT
 );
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    name TEXT NOT NULL,
+    password TEXT NOT NULL,      -- scrypt hash, see auth.py
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,      -- sha256 of the token the browser holds
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS media (
     id TEXT PRIMARY KEY,
     profile_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
@@ -50,7 +62,8 @@ CREATE TABLE IF NOT EXISTS media (
 );
 """
 # Columns added after the first release; ALTER them into older databases
-_ADDED = [("media", "stage", "TEXT"), ("media", "progress", "REAL")]
+_ADDED = [("media", "stage", "TEXT"), ("media", "progress", "REAL"),
+          ("profiles", "user_id", "TEXT")]  # owner; null until whoever made it signs up
 
 _lock = threading.Lock()
 _db = None
@@ -124,8 +137,19 @@ def create_profile(name):
     return get_profile(pid)
 
 
-def list_profiles():
-    return _rows("SELECT * FROM profiles ORDER BY created_at DESC")
+def list_profiles(user_id=None, ids=()):
+    """Every profile (server housekeeping), or one user's, or the unowned ones in `ids`
+    (a visitor's voices before they make an account)."""
+    if user_id is None and not ids:
+        return _rows("SELECT * FROM profiles ORDER BY created_at DESC")
+    marks = ",".join("?" * len(ids)) or "''"
+    return _rows(f"SELECT * FROM profiles WHERE user_id = ? OR (user_id IS NULL AND id IN ({marks})) "
+                 "ORDER BY created_at DESC", user_id or "", *ids)
+
+
+def claim_profile(pid, user_id):
+    """Gives an unowned profile to `user_id`; a profile someone already owns is left alone."""
+    _exec("UPDATE profiles SET user_id = ? WHERE id = ? AND user_id IS NULL", user_id, pid)
 
 
 def get_profile(pid):
@@ -178,3 +202,37 @@ def delete_media(mid):
         os.remove(media_path(m["profile_id"], mid))
     except FileNotFoundError:
         pass
+
+
+# Accounts
+
+def create_user(username, name, password_hash):
+    uid = _new_id()
+    _exec("INSERT INTO users (id, username, name, password, created_at) VALUES (?, ?, ?, ?, ?)",
+          uid, username, name, password_hash, time.time())
+    return get_user(uid)
+
+
+def get_user(uid):
+    rows = _rows("SELECT id, username, name, created_at FROM users WHERE id = ?", uid)
+    return rows[0] if rows else None
+
+
+def get_user_login(username):
+    """The user row including the password hash, for checking a login."""
+    rows = _rows("SELECT * FROM users WHERE username = ?", username)
+    return rows[0] if rows else None
+
+
+def add_session(token_hash, uid, expires_at):
+    _exec("DELETE FROM sessions WHERE expires_at < ?", time.time())
+    _exec("INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)", token_hash, uid, expires_at)
+
+
+def session_user(token_hash):
+    rows = _rows("SELECT user_id FROM sessions WHERE token = ? AND expires_at > ?", token_hash, time.time())
+    return get_user(rows[0]["user_id"]) if rows else None
+
+
+def delete_session(token_hash):
+    _exec("DELETE FROM sessions WHERE token = ?", token_hash)

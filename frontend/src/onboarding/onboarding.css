@@ -1,0 +1,581 @@
+/* Onboarding and login (/start, /login): minimal. One centred column on card stock, one
+   question per screen in big type, one control. The mouth is the only mark; it moves with
+   your microphone while you record. Cobalt marks progress, orange the live recording. */
+
+.ob {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+}
+
+.ob-top {
+  height: 64px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+
+.ob-brand {
+  color: var(--ink);
+  text-decoration: none;
+  font: 800 20px/1 var(--sans);
+  letter-spacing: -0.02em;
+}
+
+.ob-toplink {
+  margin-right: -10px;
+  padding: 10px;
+  border-radius: 8px;
+  font: 600 15px/1 var(--sans);
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ob-toplink:hover {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+/* three thin segments across the top: done in ink, current in cobalt */
+.ob-progress {
+  width: min(560px, calc(100% - 40px));
+  margin: 8px auto 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.ob-progress i {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--rule);
+  transition: background 0.4s var(--ease);
+}
+
+.ob-progress i.is-done {
+  background: var(--ink);
+}
+
+.ob-progress i.is-current {
+  background: var(--cobalt);
+}
+
+.ob-main {
+  flex: 1;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: clamp(40px, 9vh, 96px) 20px 48px;
+  display: flex;
+}
+
+.ob-screen {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ob-screen {
+    animation: ob-in 0.45s var(--ease) both;
+  }
+}
+
+@keyframes ob-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.ob-mark {
+  margin-bottom: 28px;
+}
+
+.ob-mark .lips {
+  width: 84px;
+  height: auto;
+}
+
+.ob-ask {
+  font: 800 clamp(32px, 4.2vw, 46px) / 1.08 var(--sans);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.ob-lede {
+  margin-top: 14px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.ob-body {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.ob-foot {
+  margin-top: auto;
+  padding-top: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.ob-aside {
+  font-size: 15px;
+  color: var(--ink-3);
+}
+
+.ob-aside a {
+  color: var(--ink);
+  font-weight: 600;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--orange);
+}
+
+.ob-quiet {
+  margin: -8px -10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font: 600 15px/1 var(--sans);
+  color: var(--ink-3);
+  transition: color 0.15s, background 0.15s;
+}
+
+.ob-quiet:hover {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+/* --------------------------------------------------------------- controls */
+.ob-go {
+  height: 56px;
+  padding: 0 28px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--card);
+  font: 700 17px/1 var(--sans);
+  white-space: nowrap;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.ob-go:hover:not(:disabled) {
+  background: var(--cobalt);
+}
+
+.ob-go:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ob-secondary {
+  height: 56px;
+  flex: none;
+  padding: 0 22px;
+  border-radius: var(--r-ctl);
+  background: var(--paper);
+  font: 700 16px/1 var(--sans);
+  color: var(--ink);
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.ob-secondary:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--card);
+}
+
+.ob-secondary:disabled {
+  opacity: 0.45;
+}
+
+.ob-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.ob-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ob-field > span {
+  font: 600 15px/1 var(--sans);
+  color: var(--ink-2);
+}
+
+.ob-field small {
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+.ob-input {
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--r-ctl);
+  background: var(--paper);
+  font: 500 18px/1 var(--sans);
+  color: var(--ink);
+  outline: none;
+  transition: box-shadow 0.15s, background 0.15s;
+}
+
+.ob-input::placeholder {
+  color: var(--ink-3);
+}
+
+.ob-input:focus {
+  background: var(--card);
+  box-shadow: inset 0 0 0 2px var(--cobalt);
+}
+
+.ob-input-big {
+  height: 64px;
+  font-size: 22px;
+}
+
+.ob-error {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--orange-text);
+}
+
+.ob-note {
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.ob-consent {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.ob-consent input {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  flex: none;
+  accent-color: var(--cobalt);
+}
+
+/* ------------------------------------------------------------- recording */
+.ob-recrow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ob-rec {
+  width: 80px;
+  height: 80px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: background 0.2s, box-shadow 0.3s var(--ease), transform 0.15s;
+}
+
+.ob-rec i {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--orange);
+  transition: border-radius 0.2s var(--ease), background 0.2s;
+}
+
+.ob-rec:hover:not(:disabled):not(.is-on) {
+  background: var(--cobalt);
+}
+
+.ob-rec:active {
+  transform: scale(0.97);
+}
+
+.ob-rec.is-on {
+  background: var(--orange);
+  box-shadow: 0 0 0 8px rgb(255 74 28 / 0.16);
+}
+
+.ob-rec.is-on i {
+  border-radius: 6px;
+  background: var(--ink);
+}
+
+.ob-rec:disabled {
+  opacity: 0.4;
+}
+
+.ob-status {
+  display: grid;
+  gap: 6px;
+  font-size: 15px;
+  color: var(--ink-3);
+}
+
+.ob-status b {
+  font: 700 18px/1.3 var(--sans);
+  color: var(--ink);
+}
+
+.ob-status .mono {
+  font-weight: 400;
+}
+
+.ob-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ob-live::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation: blink 1s steps(1) infinite;
+}
+
+.ob-inline {
+  padding: 0;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--orange);
+  text-underline-offset: 3px;
+}
+
+.ob-tally {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.ob-dots {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.ob-dots button {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+}
+
+.ob-dots button::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rule);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.ob-dots button.is-done::before {
+  background: var(--ink);
+}
+
+.ob-dots button.is-current::before {
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--cobalt);
+}
+
+.ob-dots button:hover::before {
+  background: var(--ink-3);
+}
+
+.ob-seconds {
+  font-size: 14px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------- making the voice */
+.ob-bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.ob-bar i {
+  display: block;
+  height: 100%;
+  background: var(--cobalt);
+  transform-origin: left;
+  transition: transform 0.25s linear;
+}
+
+.ob-making {
+  width: 100%;
+  display: grid;
+  gap: 22px;
+}
+
+.ob-stages {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  font-size: 17px;
+  color: var(--ink-3);
+}
+
+.ob-stages li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ob-stages li::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rule);
+  flex: none;
+}
+
+.ob-stages li.is-current {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.ob-stages li.is-current::before {
+  background: var(--cobalt);
+  animation: blink 1s steps(1) infinite;
+}
+
+.ob-stages li.is-done {
+  color: var(--ink-2);
+}
+
+.ob-stages li.is-done::before {
+  background: var(--ink);
+}
+
+/* --------------------------------------------------------------- listen */
+.ob-sample {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px 14px 14px;
+  border-radius: 16px;
+  background: var(--paper);
+  text-align: left;
+  font: 700 19px/1.35 var(--sans);
+  color: var(--ink);
+  transition: background 0.15s;
+}
+
+.ob-play {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--card);
+  transition: background 0.15s;
+}
+
+.ob-play svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ob-sample:hover:not(:disabled) .ob-play {
+  background: var(--cobalt);
+}
+
+.ob-sample:disabled {
+  opacity: 0.5;
+}
+
+.ob-say {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+}
+
+.ob-saying {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.ob-screen .ob-go {
+  margin-top: 6px;
+}
+
+.ob :focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 3px;
+}
+
+.ob input:focus-visible {
+  outline: none;
+}
+
+/* ---------------------------------------------------------------- small */
+@media (max-width: 640px) {
+  .ob-top {
+    height: 56px;
+    padding: 0 16px;
+  }
+  .ob-main {
+    padding: 36px 16px 32px;
+  }
+  .ob-mark {
+    margin-bottom: 20px;
+  }
+  .ob-go {
+    width: 100%;
+  }
+  .ob-form {
+    align-items: stretch;
+  }
+  .ob-rec {
+    width: 72px;
+    height: 72px;
+  }
+  .ob-tally {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
