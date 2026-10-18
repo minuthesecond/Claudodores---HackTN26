@@ -3,10 +3,13 @@ import { Stage, type ChipTone } from './components/Stage'
 import { Transcript, Words, type StatItem } from './components/Transcript'
 import { Controls } from './components/Controls'
 import { Logo } from './components/Icons'
+import { MouthDrawing } from './landing/glyph'
 import { useCamera } from './hooks/useCamera'
 import { useTranscript } from './hooks/useTranscript'
 import { MockLipReader } from './lib/reader'
 import { StreamLipReader, checkHealth, type Health } from './lib/backend'
+import { Speaker, checkVoice, type VoiceHealth } from './lib/voice'
+import type { Line } from './hooks/useTranscript'
 
 export default function App() {
   const camera = useCamera()
@@ -27,6 +30,23 @@ export default function App() {
     }
   }, [])
   const online = !!health
+
+  // The voice server is optional: without it, sentences are only shown.
+  const [voiceHealth, setVoiceHealth] = useState<VoiceHealth | null | undefined>(undefined)
+  useEffect(() => {
+    let alive = true
+    const poll = async () => {
+      const h = await checkVoice()
+      if (alive) setVoiceHealth((prev) => (h?.ok ? (prev?.ok ? prev : h) : null))
+    }
+    poll()
+    const id = setInterval(poll, 5000)
+    return () => {
+      alive = false
+      clearInterval(id)
+    }
+  }, [])
+  const voiceOnline = !!voiceHealth
   const mock = useMemo(() => new MockLipReader(), [])
   const backend = useMemo(() => new StreamLipReader(), [])
   const reader = online ? backend : mock
@@ -37,6 +57,7 @@ export default function App() {
   const [showMesh, setShowMesh] = useState(true)
   const [captions, setCaptions] = useState(true)
   const [mirrored, setMirrored] = useState(true)
+  const [speakOn, setSpeakOn] = useState(true)
 
   // Session clock: pauses while not reading.
   const clockRef = useRef<{ acc: number; since: number | null }>({ acc: 0, since: null })
@@ -48,8 +69,25 @@ export default function App() {
 
   const t = useTranscript(reader, clock)
 
+  // Speak each sentence once it's transcribed, one at a time.
+  const speaker = useMemo(() => new Speaker(), [])
+  const [speakingId, setSpeakingId] = useState<number | null>(null)
+  useEffect(() => speaker.on(setSpeakingId), [speaker])
+  const canSpeak = speakOn && voiceOnline
+  const spokenRef = useRef(0)
+  const last = t.lines[t.lines.length - 1]
   useEffect(() => {
-    document.title = 'UNSPOKEN — Reader'
+    if (!last || last.id === spokenRef.current) return
+    spokenRef.current = last.id
+    if (canSpeak && last.text && !last.result.error) speaker.say(last.id, last.text)
+  }, [last, canSpeak, speaker])
+  useEffect(() => {
+    if (!canSpeak) speaker.stop()
+  }, [canSpeak, speaker])
+  const speakAgain = useCallback((line: Line) => speaker.say(line.id, line.text), [speaker])
+
+  useEffect(() => {
+    document.title = 'Unspoken — Live demo'
   }, [])
 
   const [streamFps, setStreamFps] = useState<number | null>(null)
@@ -82,6 +120,7 @@ export default function App() {
   const toggle = useCallback(() => (reading ? stop() : start()), [reading, start, stop])
 
   const clear = () => {
+    speaker.stop()
     reader.reset()
     t.clear()
     clockRef.current = { acc: 0, since: reading ? performance.now() : null }
@@ -107,39 +146,31 @@ export default function App() {
 
   const busy = camera.status === 'requesting'
 
-  // Captions: streaming words (mock), or the latest result for a few seconds (backend).
-  const last = t.lines[t.lines.length - 1]
+  // Captions: each finished sentence, for a few seconds (longer while it's being spoken).
   const [captionId, setCaptionId] = useState<number | null>(null)
   useEffect(() => {
-    if (!last?.result || last.result.error) return
+    if (!last || last.result.error || !last.text) return
     setCaptionId(last.id)
     const id = setTimeout(() => setCaptionId(null), 5000)
     return () => clearTimeout(id)
   }, [last])
-  const captionWords = t.current.length || t.interim ? t.current.slice(-9) : captionId === last?.id ? last.words : []
+  const captionLine = last && (captionId === last.id || speakingId === last.id) ? last : null
 
   const [label, tone]: [string, ChipTone] = !reading
     ? ['Preview', 'idle']
     : t.status === 'recording'
       ? ['Reading lips', 'rec']
       : t.status === 'processing'
-        ? ['Finishing', 'proc']
-        : online
-          ? ['Listening', 'listen']
-          : ['Reading', 'rec']
+        ? ['Transcribing', 'proc']
+        : speakingId !== null
+          ? ['Speaking', 'listen']
+          : ['Watching', 'listen']
 
-  const pct = (n: number, of: number) => (of ? `${Math.round((n / of) * 100)}%` : '—')
-  const stats: StatItem[] = online
-    ? [
-        { label: 'Phrases', value: String(t.results) },
-        { label: 'Words', value: String(t.wordCount) },
-        { label: 'Latency', value: t.avgSeconds === null ? '—' : `${t.avgSeconds.toFixed(1)}s` },
-      ]
-    : [
-        { label: 'Words', value: String(t.wordCount) },
-        { label: 'Lines', value: String(t.lines.length) },
-        { label: 'Confidence', value: pct(t.confidence, 1), bar: t.wordCount ? t.confidence : 0 },
-      ]
+  const stats: StatItem[] = [
+    { label: 'Sentences', value: String(t.results) },
+    { label: 'Words', value: String(t.wordCount) },
+    { label: 'Latency', value: t.avgSeconds === null ? '—' : `${t.avgSeconds.toFixed(1)} s` },
+  ]
 
   return (
     <div className="app">
@@ -147,17 +178,23 @@ export default function App() {
         <a className="brand" href="/">
           <Logo />
           <span className="brand-name">Unspoken</span>
-          <span className="badge">v0.1 Preview</span>
+          <span className="badge">Prototype</span>
         </a>
         <dl className="topbar-meta">
           <div>
             <dt>Model</dt>
-            <dd>{online ? (health.model ?? 'AUTO-AVSR') : 'MOCK'}</dd>
+            <dd>{online ? (health.model ?? 'Auto-AVSR') : 'Mock'}</dd>
           </div>
           <div className="hide-sm">
             <dt>Backend</dt>
             <dd className={online ? 'is-on' : ''}>
               {health === undefined ? 'Checking' : online ? `Online / ${health.device ?? 'cpu'}` : 'Offline'}
+            </dd>
+          </div>
+          <div className="hide-sm">
+            <dt>Voice</dt>
+            <dd className={voiceOnline ? 'is-on' : ''}>
+              {voiceHealth === undefined ? 'Checking' : voiceOnline ? 'Online' : 'Offline'}
             </dd>
           </div>
           <div>
@@ -178,16 +215,11 @@ export default function App() {
             streamFps={online && reading ? streamFps : null}
             showMesh={showMesh}
             mirrored={mirrored}
-            caption={
-              captions && reading && (captionWords.length || t.interim) ? (
-                <Words words={captionWords} interim={t.interim} />
-              ) : null
-            }
+            caption={captions && captionLine ? <Words words={captionLine.words} /> : null}
             empty={
               <div className="empty">
                 <div className="empty-mark" aria-hidden>
-                  <span />
-                  <span />
+                  <MouthDrawing jaw={0.14} />
                 </div>
                 <h1>Read lips in real time</h1>
                 <p>Unspoken follows the shape of your mouth and turns it into text as you speak. No microphone.</p>
@@ -196,7 +228,7 @@ export default function App() {
                 </button>
                 {camera.error && <p className="error">{camera.error}</p>}
                 <p className="fineprint">
-                  {online ? 'Phrase clips go to the Auto-AVSR server only while reading' : 'Offline mock / Video never leaves the browser'}
+                  {online ? 'Phrase clips go to the Auto-AVSR server only while reading.' : 'Offline mock. Video never leaves the browser.'}
                 </p>
               </div>
             }
@@ -213,6 +245,7 @@ export default function App() {
             toggles={[
               { label: 'Landmarks', on: showMesh, set: setShowMesh },
               { label: 'Captions', on: captions, set: setCaptions },
+              { label: 'Voice', on: speakOn, set: setSpeakOn },
               { label: 'Mirror', on: mirrored, set: setMirrored },
             ]}
           />
@@ -220,15 +253,14 @@ export default function App() {
 
         <Transcript
           lines={t.lines}
-          current={t.current}
-          currentId={t.currentId}
-          currentAt={t.currentAt}
-          interim={t.interim}
+          pendingAt={t.pendingAt}
           status={t.status}
           reading={reading}
           elapsed={elapsed}
           stats={stats}
           onClear={clear}
+          speakingId={speakingId}
+          onSpeak={canSpeak ? speakAgain : undefined}
         />
       </main>
     </div>

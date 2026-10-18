@@ -152,7 +152,7 @@ components:
 
 **Creative North Star: "The Articulation Deck"**
 
-Scope: this system governs the public landing page (`/`, `frontend/src/landing/`). The `/app` lip reader (`frontend/src/App.tsx`, `frontend/src/styles.css`: IBM Plex, uppercase labels, black with #ff3d00, light and dark tokens) is a separate, older system that was intentionally left as is. Do not reconcile the two, do not carry these tokens into `/app`, and do not pull the app's faces or colours into the landing page unless the user asks for that migration.
+Scope: this system governs both routes: the public landing page (`/`, `frontend/src/landing/`) and the `/app` lip reader (`frontend/src/App.tsx`, `frontend/src/components/`). Shared tokens, the fonts and the mouth drawing's styles live in `frontend/src/styles.css`; the landing page adds its own layer in `landing.css`. The reader is an Operate surface and deliberately quieter than the landing page: same palette and type, but flat card-stock panels on 1px hairlines (16px corners, 12px controls), a card-stock top bar instead of the cobalt band, no ring holes, no fanned cards, no table shadows. Cobalt marks on-states (switches, status dots, hover on primary buttons) and orange marks reading and speech (the live chip, the lip overlay, new words). The camera stage is an ink card; before the camera is on it is a plain card with a static mouth drawing and one ink button. Motion is limited to state feedback: words landing, caret blink, switches. No load choreography. The page never rubber-band scrolls.
 
 The landing page is a speech-language pathologist's deck of articulation cards laid on a cobalt table. Each card is die-cut from coated card stock with round corners and a punched ring hole; on it, a two-ink drawing of a mouth (upper lip in ink, lower lip in signal orange) becomes words in the patient's own voice. Proof sits on the top card: the real pipeline replay, the 96×96 model input clipped on as a small card of its own, and the real jawOpen trace. Concept screens of the planned phone app are drawn as articulation cards, never as phone frames.
 
@@ -293,4 +293,4 @@ The top card of the hero fan: the real clip with the mouth region boxed (card-wh
 - **Don't** add a fourth hue, or set small text in orange on light stock.
 - **Don't** uppercase labels or add letter-spacing to them.
 - **Don't** draw the app inside a phone frame or beside the headline as a mockup.
-- **Don't** apply this system to `/app`, or bring IBM Plex, uppercase labels or #ff3d00 from `/app` into the landing page.
+- **Don't** bring back IBM Plex, uppercase labels or #ff3d00 anywhere; both routes use this system.

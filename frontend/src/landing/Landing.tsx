@@ -4,8 +4,6 @@ import { STEPS, StepCard } from './Deck'
 import { MouthGlyph } from './glyph'
 import { Replay } from './Replay'
 import { useCountUp, useReveal, useScrollProgress, useScrollVars, useSmoothScroll } from './motion'
-import '@fontsource-variable/atkinson-hyperlegible-next/wght.css'
-import '@fontsource-variable/atkinson-hyperlegible-mono/wght.css'
 import './landing.css'
 
 const REPO = 'https://github.com/minuthesecond/Claudodores---HackTN26'
@@ -19,10 +17,10 @@ const SOURCES = [
 
 // The business plan's competitive map: x = silent, no typing; y = sounds like the patient
 const OPTIONS = [
-  { x: 0.12, y: 0.78, name: 'Typing + banked voice', trade: 'Sounds like them, but every sentence is typed.' },
-  { x: 0.16, y: 0.28, name: 'Whiteboard, letter board', trade: 'Slow, and no voice at all.' },
-  { x: 0.62, y: 0.3, name: 'Electrolarynx', trade: 'Fast, held to the throat, robotic.' },
-  { x: 0.86, y: 0.14, name: 'Lip-reading apps', trade: 'Silent, but a stranger’s voice.' },
+  { x: 0.12, y: 0.68, name: 'Typing + banked voice', trade: 'Sounds like them, but every sentence is typed.' },
+  { x: 0.16, y: 0.26, name: 'Whiteboard, letter board', trade: 'Slow, and no voice at all.' },
+  { x: 0.62, y: 0.44, name: 'Electrolarynx', trade: 'Fast, held to the throat, robotic.' },
+  { x: 0.86, y: 0.08, name: 'Lip-reading apps', trade: 'Silent, but a stranger’s voice.' },
 ]
 
 function Arrow() {
@@ -302,7 +300,7 @@ function CompetitiveMap() {
             {d.name}
           </span>
         ))}
-        <span className="lp-map-us" style={{ left: '84%', bottom: '80%' }}>
+        <span className="lp-map-us" style={{ left: '84%', bottom: '84%' }}>
           <MouthGlyph jaw={0.18} />
           Unspoken
         </span>

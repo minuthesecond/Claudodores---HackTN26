@@ -20,7 +20,7 @@ export function Controls(p: Props) {
       </button>
 
       <label className="select">
-        <span className="select-label">Cam</span>
+        <span className="select-label">Camera</span>
         <select
           value={p.deviceId}
           onChange={(e) => p.onDevice(e.target.value)}
@@ -41,7 +41,7 @@ export function Controls(p: Props) {
 
       {p.cameraOn && (
         <button className="btn" onClick={p.onCameraOff}>
-          Cam off
+          Camera off
         </button>
       )}
 

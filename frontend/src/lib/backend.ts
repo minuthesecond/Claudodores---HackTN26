@@ -6,8 +6,7 @@
  * lipread/live.py's loop on them (phrase segmentation, Face Landmarker
  * keypoints, Auto-AVSR) and sends back:
  *   status  — recording | processing | idle
- *   partial — fast decode of the phrase so far (~1/s while it's mouthed)
- *   final   — full decode once the speaker pauses
+ *   final   — the whole sentence, decoded once the speaker pauses
  */
 import type { FrameInput, LipReader, ReaderEvent, ReaderStatus } from './reader'
 
@@ -43,7 +42,6 @@ declare const MediaStreamTrackProcessor:
 type ServerMessage =
   | { type: 'stats'; fps: number }
   | { type: 'status'; status: ReaderStatus }
-  | { type: 'partial'; text: string }
   | { type: 'final'; text: string; seconds?: number; error?: string }
 
 export class StreamLipReader implements LipReader {
@@ -136,8 +134,7 @@ export class StreamLipReader implements LipReader {
   private handle(m: ServerMessage) {
     if (m.type === 'stats') this.emit({ type: 'stats', fps: m.fps })
     else if (m.type === 'status') this.emit({ type: 'status', status: m.status })
-    else if (m.type === 'partial') this.emit({ type: 'partial', text: m.text })
-    else this.emit({ type: 'result', raw: m.text, seconds: m.seconds, error: m.error })
+    else if (m.type === 'final') this.emit({ type: 'result', raw: m.text, seconds: m.seconds, error: m.error })
   }
 
   private emit(e: ReaderEvent) {

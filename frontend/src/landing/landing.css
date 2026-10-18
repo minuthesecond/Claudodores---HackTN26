@@ -329,6 +329,8 @@ html:has(.lp) {
 }
 
 .lp-note {
+  position: relative;
+  z-index: 1; /* stays above the fanned cards */
   margin-top: 52px;
   font: 400 16px/1.5 var(--sans);
   color: var(--ink-2);
@@ -868,26 +870,6 @@ html:has(.lp) {
   flex: 0 0 34%;
 }
 
-.lips {
-  display: block;
-  overflow: visible;
-}
-
-.lips-upper,
-.lips-lower {
-  fill: var(--card);
-  stroke-width: 3.2;
-  stroke-linejoin: round;
-}
-
-.lips-upper {
-  stroke: var(--ink);
-}
-
-.lips-lower {
-  stroke: var(--orange);
-}
-
 .dk-mouth {
   width: 78%;
   height: auto;
@@ -1369,14 +1351,18 @@ html:has(.lp) {
 }
 
 /* scroll-linked: the hero deck fans out as you leave it */
+.lp-stack {
+  --fan: clamp(0, (var(--p, 0) - 0.4) / 0.3, 1); /* 0 → 1 as the deck leaves */
+}
+
 .lp-stack-a {
-  rotate: calc(max(0, var(--p, 0) - 0.4) * -16deg);
-  translate: calc(max(0, var(--p, 0) - 0.4) * -60px) 0;
+  rotate: calc(var(--fan) * -2deg);
+  translate: calc(var(--fan) * -28px) 0;
 }
 
 .lp-stack-b {
-  rotate: calc(max(0, var(--p, 0) - 0.4) * 12deg);
-  translate: calc(max(0, var(--p, 0) - 0.4) * 70px) 0;
+  rotate: calc(var(--fan) * 1.6deg);
+  translate: calc(var(--fan) * 32px) 0;
 }
 
 /* scroll-linked: the two price lines slide in from opposite sides and meet */

@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+
+# Voice recordings and generated audio (a cloned voice is sensitive data)
+*.wav
+voice_cache/

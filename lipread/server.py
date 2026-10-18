@@ -2,9 +2,9 @@
 
 WS /stream: the browser streams camera frames; each connection runs live.py's loop on
 them (Face Landmarker -> jawOpen phrase segmentation -> keypoints -> 25fps resample ->
-Auto-AVSR LRS3_V_WER19.1 + language model). While a phrase is being mouthed, a fast
-partial decode is sent about once a second; when the speaker pauses, the full decode
-finalizes it.
+Auto-AVSR LRS3_V_WER19.1 + language model). Each phrase is decoded once, in full, after
+the speaker pauses; the frontend shows and speaks one sentence at a time. Set PARTIALS=1
+to also send fast in-progress decodes while a phrase is being mouthed.
 
 POST /transcribe: one-shot decode of an uploaded clip (handy for testing).
 
@@ -40,13 +40,14 @@ env = lambda name, default: type(default)(os.environ.get(name, default))
 # Same as live.py
 START = 0.10  # jaw opening that starts a phrase
 STILL = 0.04  # jaw opening below this counts as a pause
-PAUSE = env("PAUSE", 1.0)  # seconds of pause that ends a phrase
+PAUSE = env("PAUSE", 0.7)  # seconds of pause that ends a phrase (live.py: 1.0)
 MAX_SECONDS = 8.0
 MIN_SECONDS = 0.8
 PREROLL = 0.6  # seconds kept before the phrase starts
 MAX_SIDE = 960  # same downscale as mouth.read_video
 
-FINAL_BEAM = env("FINAL_BEAM", 40)  # live.py's config
+FINAL_BEAM = env("FINAL_BEAM", 10)  # live.py uses 40: ~2x slower on CPU, same text on our clips
+PARTIALS = env("PARTIALS", 0)  # 1: also decode the phrase in progress (off: the model stays free for finals)
 PARTIAL_BEAM = env("PARTIAL_BEAM", 4)  # in-progress text only; finals always use FINAL_BEAM
 PARTIAL_EVERY = env("PARTIAL_EVERY", 0.5)  # seconds between partial decodes
 
@@ -145,7 +146,8 @@ class Session:
         if done or t - self.clip[0][2] > MAX_SECONDS:
             self.finish()
         elif (
-            self.quiet_since is None  # mouth moving; once it's still, keep the model free for the final
+            PARTIALS
+            and self.quiet_since is None  # mouth moving; once it's still, keep the model free for the final
             and t - self.last_partial >= PARTIAL_EVERY
             and t - self.clip[0][2] >= MIN_SECONDS
             and not running(self.partial)

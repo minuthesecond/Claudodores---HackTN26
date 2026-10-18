@@ -2,19 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import type { Line, LineResult, Word } from '../hooks/useTranscript'
 import type { ReaderStatus } from '../lib/reader'
 
-export type StatItem = { label: string; value: string; bar?: number }
+export type StatItem = { label: string; value: string }
 
 type Props = {
   lines: Line[]
-  current: Word[]
-  currentId: number
-  currentAt: number
-  interim: string | null
+  pendingAt: number
   status: ReaderStatus
   reading: boolean
   elapsed: number
   stats: StatItem[]
   onClear: () => void
+  /** id of the line being spoken aloud right now */
+  speakingId: number | null
+  /** speaks a line again; absent when the voice is off or unavailable */
+  onSpeak?: (line: Line) => void
 }
 
 export const fmt = (ms: number) => {
@@ -22,46 +23,48 @@ export const fmt = (ms: number) => {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 }
 
-export function Words({ words, interim, caret }: { words: Word[]; interim: string | null; caret?: boolean }) {
+export function Words({ words }: { words: Word[] }) {
   return (
     <>
       {words.map((w) => (
-        <span
-          key={w.id}
-          className={`word ${w.confidence < 0.7 ? 'is-unsure' : ''}`}
-          title={`${Math.round(w.confidence * 100)}% confidence`}
-        >
+        <span key={w.id} className="word">
           {w.text}{' '}
         </span>
       ))}
-      {interim && <span className="word is-interim">{interim} </span>}
-      {caret && <span className="caret" />}
     </>
   )
 }
 
-const lineText = (l: Line) => l.words.map((w) => w.text).join(' ') || (l.result?.error ? `(${l.result.error})` : '')
-const toText = (lines: Line[]) => lines.map((l) => `[${fmt(l.at)}] ${lineText(l)}`).join('\n')
+const toText = (lines: Line[]) =>
+  lines.map((l) => `[${fmt(l.at)}] ${l.text || (l.result.error ? `(${l.result.error})` : '')}`).join('\n')
 
 function resultMeta(r: LineResult) {
-  const time = r.seconds !== undefined ? `${r.seconds.toFixed(2)}S` : ''
+  const time = r.seconds !== undefined ? `${r.seconds.toFixed(2)} s` : ''
   if (r.error) return r.error
-  if (r.phrase) return `Model read: ${r.raw || '—'} / ${time}`
-  if (r.phrase === null) return `No phrase match / ${time}`
-  return r.raw ? `Read in ${time}` : `Nothing read / ${time}`
+  if (r.phrase) return `Model read “${r.raw || '—'}” · ${time}`
+  if (r.phrase === null) return `No phrase match · ${time}`
+  return r.raw ? `Transcribed in ${time}` : `Nothing read · ${time}`
+}
+
+function SpeakerIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden className="icon">
+      <path d="M3 8h3l4-3.5v11L6 12H3z" fill="currentColor" />
+      <path d="M13 7.5a3.5 3.5 0 0 1 0 5M15 5a7 7 0 0 1 0 10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
 }
 
 export function Transcript(p: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [copied, setCopied] = useState(false)
   const pending = p.status === 'recording' || p.status === 'processing'
-  const hasCurrent = p.current.length > 0 || !!p.interim || pending
-  const empty = p.lines.length === 0 && !hasCurrent
+  const empty = p.lines.length === 0 && !pending
 
   useEffect(() => {
     const el = scrollRef.current
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-  }, [p.lines.length, p.current.length, p.interim, p.status])
+  }, [p.lines.length, p.status])
 
   const copy = async () => {
     await navigator.clipboard.writeText(toText(p.lines))
@@ -101,36 +104,52 @@ export function Transcript(p: Props) {
       <div className="panel-body" ref={scrollRef}>
         {empty ? (
           <div className="transcript-empty">
-            <p className="empty-title">{p.reading ? 'Watching — start speaking' : 'No transcript yet'}</p>
-            <p className="muted small">Face the camera in good light. Audio is never recorded.</p>
+            <p className="empty-title">{p.reading ? 'Watching. Mouth a sentence, then pause.' : 'No transcript yet'}</p>
+            <p className="muted small">
+              Each sentence is transcribed and spoken once you pause. Face the camera in good light.
+            </p>
           </div>
         ) : (
           <ol className="lines">
-            {p.lines.map((l) => (
-              <li key={l.id} className={`line ${l.result?.error ? 'is-error' : ''}`}>
-                <time className="mono">{fmt(l.at)}</time>
-                <div>
-                  <p>{l.words.length ? <Words words={l.words} interim={null} /> : l.result?.error ? 'Not read' : '—'}</p>
-                  {l.result && (
-                    <span className={`line-meta mono ${l.result.phrase === null || (!l.result.raw && !l.result.error) ? 'is-warn' : ''}`}>{resultMeta(l.result)}</span>
+            {p.lines.map((l) => {
+              const speaking = p.speakingId === l.id
+              const spoken = !!l.text && !l.result.error
+              return (
+                <li key={l.id} className={`line ${l.result.error ? 'is-error' : ''} ${speaking ? 'is-speaking' : ''}`}>
+                  <time className="mono">{fmt(l.at)}</time>
+                  <div>
+                    <p>{l.words.length ? <Words words={l.words} /> : l.result.error ? 'Not read' : '—'}</p>
+                    <span
+                      className={`line-meta mono ${l.result.phrase === null || (!l.result.raw && !l.result.error) ? 'is-warn' : ''}`}
+                    >
+                      {speaking ? 'Speaking' : resultMeta(l.result)}
+                    </span>
+                  </div>
+                  {p.onSpeak && spoken && (
+                    <button
+                      className={`speak-btn ${speaking ? 'is-on' : ''}`}
+                      onClick={() => p.onSpeak!(l)}
+                      aria-label={`Say “${l.text}” again`}
+                      title="Say it again"
+                    >
+                      <SpeakerIcon />
+                    </button>
                   )}
-                </div>
-              </li>
-            ))}
-            {hasCurrent && (
-              <li key={p.currentId} className="line is-current">
-                <time className="mono">{fmt(p.currentAt)}</time>
+                </li>
+              )
+            })}
+            {pending && (
+              <li key="pending" className="line is-pending">
+                <time className="mono">{fmt(p.pendingAt)}</time>
                 <div>
-                  {p.current.length || p.interim ? (
-                    <p>
-                      <Words words={p.current} interim={p.interim} caret />
-                    </p>
-                  ) : (
-                    <p className="pending">
-                      {p.status === 'recording' ? 'Reading lips' : 'Finishing'}
-                      <span className="caret" />
-                    </p>
-                  )}
+                  <p className="pending">
+                    {p.status === 'recording' ? 'Reading lips' : 'Transcribing'}
+                    <span className="dots" aria-hidden>
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                  </p>
                 </div>
               </li>
             )}
@@ -143,11 +162,6 @@ export function Transcript(p: Props) {
           <div key={s.label} className="stat">
             <span className="stat-label">{s.label}</span>
             <span className="stat-value mono">{s.value}</span>
-            {s.bar !== undefined && (
-              <span className="stat-bar">
-                <span style={{ transform: `scaleX(${s.bar})` }} />
-              </span>
-            )}
           </div>
         ))}
       </footer>

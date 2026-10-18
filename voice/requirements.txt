@@ -1,0 +1,10 @@
+# Text-to-speech in a cloned voice (XTTS-v2)
+torch
+torchaudio
+coqui-tts[codec]
+transformers<5
+protobuf<5  # only while lipread/ pins mediapipe==0.10.14 in the same environment; drop once it uses mediapipe>=1.1.1
+
+# Web server
+fastapi
+uvicorn

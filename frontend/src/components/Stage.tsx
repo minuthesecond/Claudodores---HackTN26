@@ -21,7 +21,8 @@ type Props = {
   streamFps?: number | null
 }
 
-const ACCENT = '#ff3d00'
+const ACCENT = '#ff4a1c'
+const IDLE_BAR = '#c4c6cc'
 const HISTORY = 44
 const SPEAKING = 0.16
 const ROI_ASPECT = 1.6
@@ -246,7 +247,7 @@ export function Stage({ stream, reading, label, tone, reader, showMesh, mirrored
       const bw = (SW - gap * (HISTORY - 1)) / HISTORY
       history.forEach((v, i) => {
         const bh = Math.max(1, Math.round(Math.min(1, v * 1.4) * SH))
-        sctx.fillStyle = v > SPEAKING && reading ? ACCENT : '#5a5a5a'
+        sctx.fillStyle = v > SPEAKING && reading ? ACCENT : IDLE_BAR
         sctx.fillRect(Math.round(i * (bw + gap)), SH - bh, Math.max(1, Math.floor(bw)), bh)
       })
 
