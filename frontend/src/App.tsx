@@ -9,7 +9,17 @@ import { useTranscript } from './hooks/useTranscript'
 import { MockLipReader } from './lib/reader'
 import { StreamLipReader, checkHealth, type Health } from './lib/backend'
 import { Speaker, checkVoice, type VoiceHealth } from './lib/voice'
+import { VoicebankPanel, VoicePicker, useVoicebank } from '@voicebank'
 import type { Line } from './hooks/useTranscript'
+
+const VOICE_KEY = 'unspoken.voice'
+function savedVoice() {
+  try {
+    return localStorage.getItem(VOICE_KEY)
+  } catch {
+    return null
+  }
+}
 
 export default function App() {
   const camera = useCamera()
@@ -47,6 +57,23 @@ export default function App() {
     }
   }, [])
   const voiceOnline = !!voiceHealth
+
+  // Banked voices (../voicebank). The chosen one is used only while voicebank is up and it's approved.
+  const bank = useVoicebank()
+  const [bankOpen, setBankOpen] = useState(false)
+  const [chosenVoice, setChosenVoice] = useState<string | null>(savedVoice)
+  const chooseVoice = useCallback((id: string | null) => {
+    setChosenVoice(id)
+    try {
+      if (id) localStorage.setItem(VOICE_KEY, id)
+      else localStorage.removeItem(VOICE_KEY)
+    } catch {
+      // private mode: just not remembered
+    }
+  }, [])
+  const bankedVoice =
+    bank.online && bank.profiles.some((p) => p.id === chosenVoice && p.status === 'approved') ? chosenVoice : null
+
   const mock = useMemo(() => new MockLipReader(), [])
   const backend = useMemo(() => new StreamLipReader(), [])
   const reader = online ? backend : mock
@@ -80,7 +107,8 @@ export default function App() {
   useEffect(() => {
     speaker.wholeSentence = voiceHealth?.device === 'cpu'
   }, [voiceHealth, speaker])
-  const canSpeak = speakOn && voiceOnline
+  useEffect(() => speaker.setVoice(bankedVoice), [speaker, bankedVoice])
+  const canSpeak = speakOn && (voiceOnline || !!bankedVoice)
   const spokenRef = useRef(0)
   const last = t.lines[t.lines.length - 1]
   useEffect(() => {
@@ -199,8 +227,14 @@ export default function App() {
           </div>
           <div className="hide-sm">
             <dt>Voice</dt>
-            <dd className={voiceOnline ? 'is-on' : ''}>
-              {voiceHealth === undefined ? 'Checking' : voiceOnline ? 'Online' : 'Offline'}
+            <dd className={voiceOnline || bankedVoice ? 'is-on' : ''}>
+              {bankedVoice
+                ? 'Banked'
+                : voiceHealth === undefined
+                  ? 'Checking'
+                  : voiceOnline
+                    ? 'Online'
+                    : 'Offline'}
             </dd>
           </div>
           <div>
@@ -208,7 +242,22 @@ export default function App() {
             <dd className={camera.stream ? 'is-on' : ''}>{camera.stream ? 'Live' : 'Off'}</dd>
           </div>
         </dl>
+        {bank.online && (
+          <VoicePicker
+            profiles={bank.profiles}
+            value={bankedVoice}
+            onChange={chooseVoice}
+            onManage={() => setBankOpen(true)}
+          />
+        )}
       </header>
+      <VoicebankPanel
+        open={bankOpen}
+        onClose={() => setBankOpen(false)}
+        profiles={bank.profiles}
+        refresh={bank.refresh}
+        onUse={chooseVoice}
+      />
 
       <main className="layout">
         <section className="stage-col">

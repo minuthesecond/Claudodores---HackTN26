@@ -1,0 +1,18 @@
+# Voicebank's own environment (voicebank/.venv), kept apart from lipread/ and voice/
+
+# Voice cloning (XTTS-v2; shares the model download with voice/)
+torch
+torchaudio
+coqui-tts[codec]
+transformers<5
+
+# Pulls the voice out of old videos (music, TV, clapping)
+demucs>=4.1
+
+# Web server (uvicorn[standard] brings the WebSocket and fast-loop extras)
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Tests
+pytest

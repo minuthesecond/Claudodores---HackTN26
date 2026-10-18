@@ -9,6 +9,8 @@
  * whole sentence and play it in one go, instead of stuttering.
  * Sentences play one after another, never over each other.
  */
+import { VOICEBANK } from '@voicebank'
+
 export const VOICE = (import.meta.env.VITE_VOICE_URL as string | undefined) ?? '/voice'
 
 export type VoiceHealth = { ok: boolean; device?: string; voice?: string }
@@ -38,6 +40,12 @@ export class Speaker {
   private ctx: AudioContext | null = null
   private sources = new Set<AudioBufferSourceNode>()
   private listeners = new Set<(id: number | null) => void>()
+  private profile: string | null = null
+
+  /** Speak in a banked voice (../../voicebank, same stream format), or null for the built-in voice. */
+  setVoice(profile: string | null) {
+    this.profile = profile
+  }
 
   /** Called with the id of the line being spoken, or null when nothing is. */
   on(listener: (id: number | null) => void) {
@@ -83,7 +91,10 @@ export class Speaker {
     const ctx = this.ctx
     if (ctx.state === 'suspended') await ctx.resume()
 
-    const res = await fetch(`${VOICE}/speak/stream?text=${encodeURIComponent(text)}`, { signal })
+    const url = this.profile
+      ? `${VOICEBANK}/speak/stream?profile=${this.profile}&text=${encodeURIComponent(text)}`
+      : `${VOICE}/speak/stream?text=${encodeURIComponent(text)}`
+    const res = await fetch(url, { signal })
     if (!res.ok || !res.body) return
     const reader = res.body.getReader()
 
