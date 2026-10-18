@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Logo } from '../components/Icons'
 import { STEPS, StepCard } from './Deck'
 import { MouthGlyph } from './glyph'
+import { Reading } from './Reading'
 import { Replay } from './Replay'
 import { useCountUp, useReveal, useScrollProgress, useScrollVars, useSmoothScroll } from './motion'
 import './landing.css'
@@ -126,30 +127,51 @@ export function Landing() {
         </section>
 
         {/* --------------------------------------------------------- problem */}
-        <section className="lp-why lp-wrap" id="why">
-          <h2 className="lp-h2" data-reveal>
-            <span className="lp-nowrap">Losing your voice</span> shouldn’t mean{' '}
-            <span className="lp-under">losing a say.</span>
-          </h2>
-          <div className="lp-why-body" data-reveal>
-            <p className="lp-claim">
-              Every year{' '}
-              <strong>
-                <Count to={12290} />
-              </strong>
-              <sup>1</sup> Americans are diagnosed with laryngeal cancer, and{' '}
-              <strong>
-                <Count to={75} />–<Count to={100} />K
-              </strong>
-              <sup>2</sup> adults get a tracheostomy. Patients who can’t communicate are <strong>three times</strong>
-              <sup>3</sup> as likely to suffer a preventable adverse event in hospital.
-            </p>
-            <ol className="lp-sources">
-              {SOURCES.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ol>
-          </div>
+        <Reading>
+          <section className="lp-why lp-wrap" id="why">
+            <h2 className="lp-h2" data-reveal>
+              <span className="lp-nowrap">Losing your voice</span> shouldn’t mean{' '}
+              <span className="lp-under">losing a say.</span>
+            </h2>
+            <div className="lp-why-body" data-reveal>
+              <p className="lp-claim">
+                Every year{' '}
+                <strong>
+                  <Count to={12290} />
+                </strong>
+                <sup>1</sup> Americans are diagnosed with laryngeal cancer, and{' '}
+                <strong>
+                  <Count to={75} />–<Count to={100} />K
+                </strong>
+                <sup>2</sup> adults get a tracheostomy. Patients who can’t communicate are <strong>three times</strong>
+                <sup>3</sup> as likely to suffer a preventable adverse event in hospital.
+              </p>
+              <ol className="lp-sources">
+                {SOURCES.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ol>
+            </div>
+          </section>
+        </Reading>
+
+        {/* ------------------------------------------------- from the floor */}
+        <section className="lp-voice">
+          <figure className="lp-wrap lp-voice-grid">
+            <MouthGlyph live className="lp-voice-glyph" />
+            <div>
+              <blockquote className="lp-voice-quote" data-reveal>
+                <p>
+                  “I think it would be nice for them to see, oh, we actually can communicate, we can understand
+                  each other. It’s not this back and forth of interpreting what they’re saying.”
+                </p>
+              </blockquote>
+              <figcaption className="lp-voice-who" data-reveal>
+                <strong>Celeste</strong>
+                <span>Nurse, Surgical Intensive Care Unit, Vanderbilt University Medical Center</span>
+              </figcaption>
+            </div>
+          </figure>
         </section>
 
         {/* ------------------------------------------------ the dealt deck */}
@@ -179,14 +201,20 @@ export function Landing() {
         <section className="lp-hospitals" id="hospitals" data-scroll>
           <div className="lp-wrap lp-hospitals-grid">
             <h2 className="lp-price">
-              <span>$400 a patient.</span>
-              <span>Patients pay nothing.</span>
+              <span>One subscription per unit.</span>
+              <span>Every patient heard.</span>
             </h2>
             <div className="lp-hospitals-side" data-reveal>
               <p>
-                Licensed to cancer centers and hospitals. Banking fits the speech therapy visit that already
-                happens before surgery, so there is no new appointment to schedule.
+                Hospitals already subscribe to video interpreter services. Unspoken works the same way: a
+                recurring fee based on the units or beds that use it.
               </p>
+              <ul className="lp-included">
+                <li>The software and every update</li>
+                <li>Voice setup for each new patient</li>
+                <li>Bedside calibration and support</li>
+              </ul>
+              <p>Patients with permanent voice loss can keep using it at home after they leave.</p>
               <div className="lp-actions">
                 <a className="lp-btn lp-btn-ink" href="/app">
                   Try the live demo
@@ -244,7 +272,7 @@ function Story() {
       <div className="lp-story-pin lp-wrap">
         <div className="lp-story-copy">
           <h2 className="lp-h2" data-reveal>
-            Fifteen minutes before surgery. Their own voice after.
+            A few home videos. Their own voice back.
           </h2>
           <ol className="lp-steps">
             {STEPS.map((s, i) => (

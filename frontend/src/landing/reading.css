@@ -1,0 +1,375 @@
+/* "One silent sentence, read and spoken": a night-ink scene pinned after the hero.
+   The logo's two bars are the lips; the instruments above them and the pipeline below
+   run on the real clip as you scroll, then the halves part onto the next section. */
+
+.rs {
+  --night: #0b1238;
+  --night-2: #9aa3d3;
+  --night-3: #1b2457;
+  --bar-w: min(86vw, 1120px);
+  --bar-t: clamp(16px, 2.6vw, 30px);
+  --slit: 7px;
+  position: relative;
+}
+
+/* the next section waits underneath, held under the nav while the scene plays */
+.rs-stage {
+  position: sticky;
+  top: 72px;
+}
+
+.rs::after {
+  content: '';
+  display: block;
+  height: var(--scroll);
+}
+
+.rs-veil {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100svh - 72px);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.rs.is-open .rs-veil {
+  visibility: hidden;
+}
+
+.rs-half {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(50% + 1px);
+  display: flex;
+  flex-direction: column;
+  background: var(--night);
+  color: var(--card);
+  will-change: transform;
+}
+
+.rs-top {
+  top: 0;
+  justify-content: space-between;
+  padding-top: clamp(28px, 6vh, 64px);
+  padding-bottom: calc(var(--slit) + var(--bar-t) + clamp(20px, 3.5vh, 40px));
+}
+
+.rs-bot {
+  bottom: 0;
+  padding-top: calc(var(--slit) + var(--bar-t) + clamp(20px, 3.5vh, 40px));
+  padding-bottom: clamp(20px, 4vh, 44px);
+}
+
+/* the inside of the mouth: what shows between the lips while it speaks,
+   fading out as it opens onto the next section */
+.rs-mouth {
+  position: absolute;
+  inset: 0;
+  background: #03061a;
+  opacity: var(--fade, 1);
+}
+
+/* ---------------------------------------------------------- the lips */
+.rs-bar {
+  position: absolute;
+  left: calc(50% - var(--bar-w) / 2);
+  width: var(--bar-w);
+  height: var(--bar-t);
+  border-radius: 3px;
+}
+
+.rs-bar-top {
+  bottom: var(--slit);
+  background: var(--card);
+}
+
+.rs-bar-bot {
+  top: var(--slit);
+  background: var(--orange);
+}
+
+/* ---------------------------------------------------------- top half */
+.rs-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  opacity: var(--fade, 1);
+}
+
+.rs-title {
+  font: 800 clamp(30px, 3.6vw, 52px) / 1 var(--sans);
+  letter-spacing: -0.035em;
+  max-width: 16ch;
+}
+
+.rs-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.rs-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--night-3);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--night-2);
+  transition: background 0.3s, color 0.3s;
+}
+
+.rs-state::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.rs-state[data-state='Reading lips'] {
+  background: var(--orange);
+  color: var(--on-orange-2);
+}
+
+.rs-state[data-state='Reading lips']::before {
+  animation: lp-blink 0.9s steps(1) infinite;
+}
+
+.rs-state[data-state='Decoded'],
+.rs-state[data-state='Speaking'] {
+  background: var(--card);
+  color: var(--night);
+}
+
+.rs-clock {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--night-2);
+}
+
+.rs-instruments {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: clamp(24px, 5vw, 80px);
+}
+
+.rs-crop {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin: 0;
+}
+
+.rs-crop canvas {
+  width: clamp(76px, 13vh, 132px);
+  height: clamp(76px, 13vh, 132px);
+  border-radius: 12px;
+  image-rendering: pixelated;
+  background: var(--night-3);
+}
+
+.rs-crop figcaption,
+.rs-graph figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--card);
+}
+
+.rs-crop small {
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--night-2);
+}
+
+.rs-graph {
+  margin: 0;
+}
+
+.rs-graph figcaption {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rs-graph figcaption span {
+  font-variant-numeric: tabular-nums;
+  color: var(--orange);
+}
+
+.rs-graph svg {
+  display: block;
+  width: 100%;
+  height: clamp(56px, 11vh, 112px);
+  overflow: visible;
+}
+
+.rs-trace-bg,
+.rs-trace,
+.rs-playhead {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.rs-trace-bg {
+  stroke: var(--night-3);
+  stroke-width: 3;
+}
+
+.rs-trace {
+  stroke: var(--orange);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--drawn, 0));
+}
+
+.rs-playhead {
+  stroke: var(--card);
+  stroke-width: 2;
+}
+
+/* -------------------------------------------------------- bottom half */
+.rs-said {
+  padding: 0 20px;
+  text-align: center;
+  font: 800 clamp(36px, 6.4vw, 92px) / 1 var(--sans);
+  letter-spacing: -0.04em;
+  opacity: var(--fade, 1);
+}
+
+.rs-said span {
+  display: inline-block;
+  white-space: pre;
+  opacity: 0.1;
+  translate: 0 0.16em;
+  filter: blur(8px);
+  transition:
+    opacity 0.45s var(--ease),
+    translate 0.6s var(--ease),
+    filter 0.45s var(--ease);
+}
+
+.rs-said span.is-on {
+  opacity: 1;
+  translate: none;
+  filter: none;
+}
+
+.rs-stages {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 2.5vw, 40px);
+  margin-top: auto;
+  list-style: none;
+  opacity: var(--fade, 1);
+}
+
+.rs-stages li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--night-2);
+  transition: color 0.3s;
+}
+
+.rs-stages li.is-active {
+  color: var(--card);
+}
+
+/* each stage fills its own bar as it works */
+.rs-fill {
+  position: relative;
+  height: 5px;
+  margin-bottom: 8px;
+  border-radius: 3px;
+  background: var(--night-3);
+  overflow: hidden;
+}
+
+.rs-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--orange);
+  transform-origin: left;
+  transform: scaleX(var(--fill, 0));
+}
+
+.rs-stages strong {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  color: inherit;
+}
+
+.rs-stages strong .wave {
+  width: 64px;
+  height: 18px;
+}
+
+.rs-stages strong .wave i {
+  background: var(--orange);
+}
+
+.rs-stages li > span:last-child {
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.rs-src {
+  margin-top: clamp(14px, 2.5vh, 24px);
+  text-align: center;
+  font-size: 14px;
+  color: var(--night-2);
+  opacity: var(--fade, 1);
+}
+
+/* ------------------------------------------------------------- phone */
+@media (max-width: 760px) {
+  .rs-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .rs-meta {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .rs-crop small {
+    display: none;
+  }
+
+  .rs-stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 14px;
+  }
+
+  .rs-stages li > span:last-child {
+    display: none;
+  }
+
+  .rs-stages strong {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 760px) and (max-height: 760px) {
+  .rs-graph {
+    display: none;
+  }
+}
