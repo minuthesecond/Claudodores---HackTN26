@@ -1,0 +1,139 @@
+/* The scorecard and the footer name: the competition in two hand-marked questions, and the
+   wordmark set as wide as the page. Same type and inks as the rest of the deck. */
+
+.lp-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ scorecard */
+.lp-score-section {
+  padding-top: var(--section-y);
+  padding-bottom: var(--section-y);
+}
+
+.lp-score-section .lp-h2 {
+  max-width: 18em;
+}
+
+/* everything in the scorecard is sized by the screen's height as well as its width, so the
+   heading and all five rows fit on one screen even on a short, wide laptop window */
+
+.lp-score {
+  display: block;
+  width: 100%;
+  margin-top: clamp(24px, 4.5vh, 64px);
+  border-top: 2px solid var(--ink);
+  border-collapse: collapse;
+}
+
+.lp-score thead,
+.lp-score tbody {
+  display: block;
+}
+
+.lp-score tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(96px, 20%));
+  align-items: center;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.lp-score th,
+.lp-score td {
+  padding: clamp(9px, 1.7vh, 22px) 12px;
+  text-align: left;
+}
+
+.lp-score thead th {
+  font: 700 15px/1.25 var(--sans);
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.lp-score tbody th {
+  font: 800 clamp(18px, min(2.2vw, 3.6vh), 30px) / 1.05 var(--sans);
+  letter-spacing: -0.02em;
+}
+
+.lp-score td {
+  display: grid;
+  place-items: center;
+}
+
+.lp-mark {
+  width: clamp(26px, min(3vw, 4.8vh), 44px);
+  height: clamp(26px, min(3vw, 4.8vh), 44px);
+  fill: none;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lp-mark.is-yes {
+  stroke: var(--ink);
+}
+
+.lp-mark.is-no {
+  stroke: rgb(21 22 26 / 0.25);
+}
+
+/* Unspoken's row: a calm cobalt band, set apart by colour rather than by force */
+.lp-score tr.is-us {
+  margin-top: clamp(10px, 1.8vh, 16px);
+  border-bottom: 0;
+  border-radius: var(--r-card);
+  background: var(--cobalt);
+  color: var(--card);
+}
+
+.lp-score tr.is-us th {
+  padding-left: 24px;
+  font-size: clamp(20px, min(2.5vw, 4.2vh), 34px);
+  line-height: 1;
+}
+
+.lp-score tr.is-us .lp-mark {
+  stroke: var(--card);
+}
+
+/* -------------------------------------------------------------- footer */
+.lp-foot {
+  overflow: clip;
+}
+
+/* the name, as wide as the page */
+.lp-foot-mark {
+  display: flex;
+  justify-content: center;
+  padding: 0 clamp(12px, 2vw, 32px) clamp(16px, 2vw, 32px);
+  font-size: calc((100vw - 2 * clamp(12px, 2vw, 32px)) / 4.9); /* the word is ~4.7em wide */
+  line-height: 1;
+  color: var(--card);
+  user-select: none;
+}
+
+/* ----------------------------------------------------------------- phone */
+@media (max-width: 760px) {
+  .lp-score tr {
+    grid-template-columns: minmax(0, 1fr) repeat(2, 64px);
+  }
+
+  .lp-score thead th {
+    font-size: 12px;
+  }
+
+  .lp-score th,
+  .lp-score td {
+    padding: 14px 6px;
+  }
+
+  .lp-score tr.is-us th {
+    padding-left: 16px;
+    font-size: clamp(18px, 5.6vw, 24px);
+  }
+}

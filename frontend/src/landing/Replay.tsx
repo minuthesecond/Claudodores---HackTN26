@@ -18,6 +18,11 @@ type ReplayData = {
   final: string
 }
 
+// the model decodes in lower case; names are capitalised for display
+const NAMES = new Set(['justin'])
+const cap = (w: string) => (w ? w[0].toUpperCase() + w.slice(1) : w)
+const show = (w: string, i: number) => (i === 0 || NAMES.has(w) ? cap(w) : w)
+
 const HOLD_MS = 2600 // how long the final line stays up before the clip restarts
 const START = 0.1
 const STILL = 0.04
@@ -127,7 +132,7 @@ export function Replay() {
   const area = jaw.length ? `0,${H} ${points} ${W},${H}` : ''
 
   return (
-    <figure className="rp" aria-label={`A real clip, read by the Unspoken pipeline as "${data?.final ?? ''}"`}>
+    <figure className="rp" aria-label={`A real clip, read by the Unspoken pipeline as "${(data?.final ?? '').split(' ').map(show).join(' ')}"`}>
       <div className="rp-face">
         <video
           ref={videoRef}
@@ -163,7 +168,7 @@ export function Replay() {
             .map((w, i) => (
               <span key={`${i}-${w}`}>
                 {i > 0 && ' '}
-                <span className="rp-word">{i === 0 ? w[0].toUpperCase() + w.slice(1) : w}</span>
+                <span className="rp-word">{show(w, i)}</span>
               </span>
             ))}
           {!done && <span className="rp-caret" />}

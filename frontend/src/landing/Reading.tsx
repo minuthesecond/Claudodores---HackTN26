@@ -3,13 +3,22 @@ import { MouthMark } from '../components/Wordmark'
 import './reading.css'
 
 /**
- * "One silent sentence, read and spoken": a pinned scene after the hero. Two bars are the lips,
+ * "Reads a patient’s lips. Speaks in the patient’s own voice.": a pinned scene after the hero. Two bars are the lips,
  * moving on the real jawOpen trace from talking.MOV as you scroll, while the mark rolls and
  * "Want to learn more?" builds word by word; then the lips open all the way and the halves part
  * to reveal the section underneath, which waits (sticky) the whole time.
  */
 
-type Replay = { jaw: number[]; cols: number; size: number; fps: number; frames: number; final: string }
+type Replay = {
+  jaw: number[]
+  cols: number
+  size: number
+  fps: number
+  frames: number
+  final: string
+  phraseStart: number // the stretch the pipeline cut out as a phrase and read
+  phraseEnd: number
+}
 
 const FIRST = 26 // the clip's frames that hold the phrase
 const LAST = 62
@@ -36,12 +45,11 @@ export function Reading({ children }: { children: ReactNode }) {
   const top = useRef<HTMLDivElement>(null)
   const bot = useRef<HTMLDivElement>(null)
   const words = useRef<(HTMLSpanElement | null)[]>([])
-  const mouth = useRef<HTMLElement>(null)
+  const mouth = useRef<HTMLSpanElement>(null)
   const state = useRef<HTMLSpanElement>(null)
-  const clock = useRef<HTMLSpanElement>(null)
   const head = useRef<SVGLineElement>(null)
   const trace = useRef<SVGPolylineElement>(null)
-  const jawValue = useRef<HTMLSpanElement>(null)
+  const reading = useRef<HTMLSpanElement>(null)
   const [data, setData] = useState<Replay | null>(null)
 
   useEffect(() => {
@@ -96,15 +104,13 @@ export function Reading({ children }: { children: ReactNode }) {
         state.current.dataset.state = label
       }
 
-      // frame clock, jaw graph playhead and value
+      // jaw graph playhead and value
       if (data) {
-        const fps = data.fps
-        if (clock.current) clock.current.textContent = `Frame ${i + 1} of ${data.frames} · ${(i / fps).toFixed(2)} s`
         const x = (i / (data.frames - 1)) * GW
         head.current?.setAttribute('x1', x.toFixed(1))
         head.current?.setAttribute('x2', x.toFixed(1))
         trace.current?.style.setProperty('--drawn', (i / (data.frames - 1)).toFixed(4))
-        if (jawValue.current) jawValue.current.textContent = j.toFixed(2)
+        reading.current?.classList.toggle('is-on', i >= data.phraseStart) // once the phrase begins, it stays labelled
       }
 
       if (data) lastFrame = i
@@ -130,29 +136,31 @@ export function Reading({ children }: { children: ReactNode }) {
           <span className="rs-mouth" aria-hidden />
           <div className="rs-half rs-top" ref={top}>
             <div className="rs-head lp-wrap">
-              <h2 className="rs-title">One silent sentence, read and spoken.</h2>
+              <h2 className="rs-title">Reads a patient’s lips. Speaks in the patient’s own voice.</h2>
               <p className="rs-meta">
                 <span className="rs-state" ref={state} data-state="Watching">
                   Watching
-                </span>
-                <span className="rs-clock" ref={clock}>
-                  Frame 27 of 78 · 1.04 s
                 </span>
               </p>
             </div>
 
             <div className="rs-instruments lp-wrap" aria-hidden>
-              <figure className="rs-crop" ref={mouth}>
+              <span className="rs-crop" ref={mouth}>
                 <MouthMark className="rs-logo" live={false} />
-                <figcaption>
-                  The o is a mouth.
-                  <small>It moves without sound. Unspoken gives it a voice.</small>
-                </figcaption>
-              </figure>
+              </span>
               <figure className="rs-graph">
-                <figcaption>
-                  Jaw opening <span ref={jawValue}>0.00</span>
-                </figcaption>
+                {data && (
+                  <span
+                    className="rs-reading"
+                    ref={reading}
+                    style={{
+                      left: `${(data.phraseStart / (data.frames - 1)) * 100}%`,
+                      width: `${((data.phraseEnd - data.phraseStart) / (data.frames - 1)) * 100}%`,
+                    }}
+                  >
+                    Reading the lips
+                  </span>
+                )}
                 <svg viewBox={`0 0 ${GW} ${GH}`} preserveAspectRatio="none">
                   <polyline points={points} className="rs-trace-bg" />
                   <polyline points={points} className="rs-trace" ref={trace} pathLength={1} />

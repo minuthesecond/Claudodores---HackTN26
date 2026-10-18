@@ -5,6 +5,7 @@ import { Reading } from './Reading'
 import { Replay } from './Replay'
 import { useCountUp, useReveal, useScrollProgress, useScrollVars, useSmoothScroll } from './motion'
 import './landing.css'
+import './art.css'
 
 const REPO = 'https://github.com/minuthesecond/Claudodores---HackTN26'
 
@@ -15,12 +16,12 @@ const SOURCES = [
   'Bartlett G. et al., “Impact of patient communication problems on the risk of preventable adverse events in acute care settings,” CMAJ 2008.',
 ]
 
-// The business plan's competitive map: x = silent, no typing; y = sounds like the patient
+// The business plan's competitive map, as two yes/no questions per option
 const OPTIONS = [
-  { x: 0.12, y: 0.68, name: 'Typing + banked voice', trade: 'Sounds like them, but every sentence is typed.' },
-  { x: 0.16, y: 0.26, name: 'Whiteboard, letter board', trade: 'Slow, and no voice at all.' },
-  { x: 0.62, y: 0.44, name: 'Electrolarynx', trade: 'Fast, held to the throat, robotic.' },
-  { x: 0.86, y: 0.08, name: 'Lip-reading apps', trade: 'Silent, but a stranger’s voice.' },
+  { name: 'Typing + banked voice', silent: false, theirs: true },
+  { name: 'Whiteboard, letter board', silent: false, theirs: false },
+  { name: 'Electrolarynx', silent: false, theirs: false },
+  { name: 'Lip-reading apps', silent: true, theirs: false },
 ]
 
 function Arrow() {
@@ -43,7 +44,7 @@ export function Landing() {
   useReveal(root)
   useScrollVars(root)
   useEffect(() => {
-    document.title = 'Unspoken — Speak again, in your own voice'
+    document.title = 'Unspoken'
   }, [])
 
   return (
@@ -55,11 +56,7 @@ export function Landing() {
         <a className="lp-brand" href="/" aria-label="Unspoken, home">
           <Wordmark />
         </a>
-        <nav className="lp-links" aria-label="Sections">
-          <a href="#how">How it works</a>
-          <a href="#why">Why it matters</a>
-          <a href="#hospitals">For hospitals</a>
-        </nav>
+        <NavLinks />
         <a className="lp-btn lp-btn-card lp-nav-cta" href="/app">
           Try the live demo
           <Arrow />
@@ -70,36 +67,36 @@ export function Landing() {
         {/* ------------------------------------------------------------ hero */}
         <section className="lp-hero">
           <div className="lp-wrap lp-hero-top">
-            <h1 className="lp-title" aria-label="Mouth it. Hear yourself.">
-              <span className="lp-line">
-                <span aria-hidden>
-                  M<MouthMark className="lp-title-o" />
-                  uth it.
+            <div className="lp-hero-main">
+              <h1 className="lp-title" aria-label="Mouth it. Hear yourself.">
+                <span className="lp-line">
+                  <span aria-hidden>
+                    M<MouthMark className="lp-title-o" />
+                    uth it.
+                  </span>
                 </span>
-              </span>
-              <span className="lp-line">
-                <span>
+                <span className="lp-line">
                   <span aria-hidden>
                     Hear <span className="lp-under">yourself.</span>
                   </span>
                 </span>
-              </span>
-            </h1>
-            <div className="lp-hero-aside lp-intro">
+              </h1>
               <p className="lp-lede">
-                Unspoken reads a patient’s lips and speaks for them in their own voice, for people who lose
-                it to a laryngectomy or tracheostomy.
+                Unspoken reads a patient’s lips and says the words out loud, for people who lose their voice to
+                a laryngectomy, a tracheostomy or a breathing tube.
               </p>
-              <a className="lp-btn lp-btn-card" href="/app">
-                Try the live demo
-                <Arrow />
-              </a>
             </div>
+            <p className="lp-hero-stat">
+              <strong>3×</strong>
+              <span>
+                the risk of preventable harm in hospital when patients can’t communicate
+                <small>Bartlett et al., CMAJ 2008</small>
+              </span>
+            </p>
           </div>
 
           <div className="lp-wrap">
             <div className="lp-stack" data-scroll>
-              <span className="lp-stack-card lp-stack-a" aria-hidden />
               <span className="lp-stack-card lp-stack-b" aria-hidden />
               <div className="lp-stack-top">
                 <span className="lp-hole" aria-hidden />
@@ -140,51 +137,43 @@ export function Landing() {
 
         {/* ------------------------------------------------- from the floor */}
         <section className="lp-voice">
-          <figure className="lp-wrap lp-voice-grid">
-            <MouthMark className="lp-voice-glyph" />
-            <div>
+          <div className="lp-wrap">
+            <figure className="lp-voice-figure">
               <blockquote className="lp-voice-quote" data-reveal>
                 <p>
-                  “I think it would be nice for them to see, oh, we actually can communicate, we can understand
-                  each other. It’s not this back and forth of interpreting what they’re saying.”
+                  <span className="lp-qmark">“</span>We actually can communicate. We can understand each
+                  other.<span className="lp-qmark">”</span>
+                </p>
+              </blockquote>
+              <blockquote className="lp-voice-quote" data-reveal>
+                <p>
+                  <span className="lp-qmark">“</span>I think a lot of patients would be very heard.
+                  <span className="lp-qmark">”</span>
                 </p>
               </blockquote>
               <figcaption className="lp-voice-who" data-reveal>
                 <strong>Celeste</strong>
                 <span>Nurse, Surgical Intensive Care Unit, Vanderbilt University Medical Center</span>
               </figcaption>
-            </div>
-          </figure>
+            </figure>
+          </div>
         </section>
 
         {/* ------------------------------------------------ the dealt deck */}
         <Story />
 
-        {/* ---------------------------------------------------------- map */}
-        <section className="lp-map-section lp-wrap">
-          <h2 className="lp-h2 lp-map-title" data-reveal>The only option that’s silent and still sounds like them.</h2>
-          <div className="lp-map-grid">
-            <CompetitiveMap />
-            <ul className="lp-options" data-reveal>
-              {OPTIONS.map((o, i) => (
-                <li key={o.name} style={{ ['--i' as string]: i }}>
-                  <strong>{o.name}</strong>
-                  <span>{o.trade}</span>
-                </li>
-              ))}
-              <li className="is-us" style={{ ['--i' as string]: OPTIONS.length }}>
-                <strong>Unspoken</strong>
-                <span>Mouth it, confirm it, heard in their own voice.</span>
-              </li>
-            </ul>
-          </div>
+        {/* ------------------------------------------------------ scorecard */}
+        <section className="lp-score-section lp-wrap">
+          <h2 className="lp-h2" data-reveal>
+            Nothing else lets them stay silent and still sound like themselves.
+          </h2>
+          <Scorecard />
         </section>
 
         {/* ---------------------------------------------------- hospitals */}
-        <section className="lp-hospitals" id="hospitals" data-scroll>
+        <section className="lp-hospitals" id="hospitals">
           <div className="lp-wrap lp-hospitals-grid">
             <h2 className="lp-price">
-              <span>One subscription per unit.</span>
               <span>Every patient heard.</span>
             </h2>
             <div className="lp-hospitals-side" data-reveal>
@@ -214,15 +203,88 @@ export function Landing() {
 
       <footer className="lp-foot">
         <div className="lp-wrap lp-foot-row">
-          <span className="lp-brand lp-brand-sm">
-            <Wordmark />
-          </span>
           <span>HackTN 2026 · The Claudodores</span>
           <span>Prototype. Not a medical device.</span>
           <a href={REPO}>Source on GitHub</a>
         </div>
+        <div className="lp-foot-mark" aria-hidden>
+          <Wordmark />
+        </div>
       </footer>
     </div>
+  )
+}
+
+const SECTIONS = [
+  { id: 'how', label: 'How it works' },
+  { id: 'why', label: 'Why it matters' },
+  { id: 'hospitals', label: 'For hospitals' },
+]
+
+/**
+ * The section links on a pane of frosted glass. A white highlight slides to whichever
+ * link is hovered or focused, and otherwise rests on the section being read.
+ */
+function NavLinks() {
+  const links = useRef<(HTMLAnchorElement | null)[]>([])
+  const [active, setActive] = useState(-1) // the section in view
+  const [hover, setHover] = useState(-1) // the link under the pointer or focus
+  const [box, setBox] = useState<{ x: number; w: number } | null>(null)
+  const target = hover >= 0 ? hover : active
+
+  // the section in view: of those whose top has passed the upper third of the screen, the
+  // one that passed it last (the links are not in page order, so compare positions)
+  useEffect(() => {
+    const onScroll = () => {
+      let next = -1
+      let best = -Infinity
+      SECTIONS.forEach((s, i) => {
+        const top = document.getElementById(s.id)?.getBoundingClientRect().top
+        if (top !== undefined && top < innerHeight * 0.35 && top > best) {
+          best = top
+          next = i
+        }
+      })
+      setActive((a) => (a === next ? a : next))
+    }
+    onScroll()
+    addEventListener('scroll', onScroll, { passive: true })
+    return () => removeEventListener('scroll', onScroll)
+  }, [])
+
+  // move the highlight under the target link
+  useEffect(() => {
+    const el = links.current[target]
+    const measure = () => setBox(el ? { x: el.offsetLeft, w: el.offsetWidth } : null)
+    measure()
+    addEventListener('resize', measure)
+    return () => removeEventListener('resize', measure)
+  }, [target])
+
+  return (
+    <nav className="lp-links" aria-label="Sections" onMouseLeave={() => setHover(-1)}>
+      <span
+        className={`lp-links-glow ${box ? 'is-on' : ''}`}
+        style={box ? { translate: `${box.x}px 0`, width: box.w } : undefined}
+        aria-hidden
+      />
+      {SECTIONS.map((s, i) => (
+        <a
+          key={s.id}
+          href={`#${s.id}`}
+          ref={(el) => {
+            links.current[i] = el
+          }}
+          className={i === target ? 'is-lit' : ''}
+          aria-current={i === active ? 'location' : undefined}
+          onMouseEnter={() => setHover(i)}
+          onFocus={() => setHover(i)}
+          onBlur={() => setHover(-1)}
+        >
+          {s.label}
+        </a>
+      ))}
+    </nav>
   )
 }
 
@@ -254,7 +316,7 @@ function Story() {
       <div className="lp-story-pin lp-wrap">
         <div className="lp-story-copy">
           <h2 className="lp-h2" data-reveal>
-            A few home videos. Their own voice back.
+            Their voice lives in the videos you already have.
           </h2>
           <ol className="lp-steps">
             {STEPS.map((s, i) => (
@@ -291,30 +353,59 @@ function Story() {
   )
 }
 
-/** The business plan's competitive map, plotted on a card. */
-function CompetitiveMap() {
+/** A hand-drawn tick or cross for the scorecard. */
+function Mark({ yes }: { yes: boolean }) {
   return (
-    <figure className="lp-map" data-reveal aria-label="Communication options plotted by how silent they are and how much they sound like the patient">
-      <span className="lp-hole" aria-hidden />
-      <div className="lp-map-plot">
-        <span className="lp-map-q" aria-hidden />
-        <span className="lp-map-y">Sounds like them</span>
-        <span className="lp-map-x">Silent, no typing</span>
-        {OPTIONS.map((d, i) => (
-          <span
-            key={d.name}
-            className={`lp-map-dot ${d.x > 0.55 ? 'is-left' : ''}`}
-            style={{ left: `${d.x * 100}%`, bottom: `${d.y * 100}%`, ['--i' as string]: i }}
-          >
-            <i />
-            {d.name}
-          </span>
+    <svg className={`lp-mark ${yes ? 'is-yes' : 'is-no'}`} viewBox="0 0 40 40" role="img" aria-label={yes ? 'Yes' : 'No'}>
+      {yes ? <path d="M7 21 C 11 24, 14 28, 17 32 C 22 22, 28 13, 35 7" /> : <path d="M9 9 C 17 17, 24 24, 31 32 M31 9 C 24 16, 16 24, 9 32" />}
+    </svg>
+  )
+}
+
+/** The competition in two questions: is it silent, and does it sound like them? */
+function Scorecard() {
+  return (
+    // laid out as a grid, so the table roles are spelled out to keep it a table for screen readers
+    <table className="lp-score" role="table" data-reveal>
+      <thead role="rowgroup">
+        <tr role="row">
+          <th scope="col" role="columnheader">
+            <span className="lp-visually-hidden">Option</span>
+          </th>
+          <th scope="col" role="columnheader">
+            Silent, no typing
+          </th>
+          <th scope="col" role="columnheader">
+            Sounds like them
+          </th>
+        </tr>
+      </thead>
+      <tbody role="rowgroup">
+        {OPTIONS.map((o) => (
+          <tr key={o.name} role="row">
+            <th scope="row" role="rowheader">
+              {o.name}
+            </th>
+            <td role="cell">
+              <Mark yes={o.silent} />
+            </td>
+            <td role="cell">
+              <Mark yes={o.theirs} />
+            </td>
+          </tr>
         ))}
-        <span className="lp-map-us" style={{ left: '84%', bottom: '84%' }}>
-          <MouthMark />
-          Unspoken
-        </span>
-      </div>
-    </figure>
+        <tr className="is-us" role="row">
+          <th scope="row" role="rowheader">
+            <Wordmark />
+          </th>
+          <td role="cell">
+            <Mark yes />
+          </td>
+          <td role="cell">
+            <Mark yes />
+          </td>
+        </tr>
+      </tbody>
+    </table>
   )
 }
