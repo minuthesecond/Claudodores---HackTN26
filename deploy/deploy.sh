@@ -5,6 +5,11 @@
 #
 #   deploy/deploy.sh ubuntu@147.224.207.225 [hostname]
 #
+# To run lip reading or the voice on another machine (the site, accounts and voicebank stay
+# here), set its base URL; it must serve the lip reader under /api or the voice under /voice:
+#   API_REMOTE=https://name.trycloudflare.com deploy/deploy.sh ubuntu@147.224.207.225
+#   VOICE_REMOTE=https://name.trycloudflare.com ...   (both can be set)
+#
 # hostname defaults to <ip-with-dashes>.sslip.io, which needs no DNS setup. The server's
 # cloud firewall must allow TCP 22, 80 and 443. Safe to run again to update.
 set -euo pipefail
@@ -64,11 +69,16 @@ rsync -az --delete frontend/dist/ "$HOST":/var/www/unspoken/
 echo "==> services"
 scp -q deploy/unspoken-lip.service deploy/unspoken-voice.service deploy/unspoken-voicebank.service \
   deploy/Caddyfile "$HOST":/tmp/
-ssh "$HOST" SITE="$SITE" bash -s <<'REMOTE'
+ssh "$HOST" SITE="$SITE" API_REMOTE="${API_REMOTE:-}" VOICE_REMOTE="${VOICE_REMOTE:-}" bash -s <<'REMOTE'
 set -euo pipefail
 sudo mv /tmp/unspoken-lip.service /tmp/unspoken-voice.service /tmp/unspoken-voicebank.service /etc/systemd/system/
 sudo mv /tmp/Caddyfile /etc/caddy/Caddyfile
-echo "SITE=$SITE" | sudo tee /etc/default/caddy >/dev/null
+{
+  echo "SITE=$SITE"
+  [ -n "$API_REMOTE" ] && { echo "API_UPSTREAM=$API_REMOTE"; echo "API_PATH=/api"; }
+  [ -n "$VOICE_REMOTE" ] && { echo "VOICE_UPSTREAM=$VOICE_REMOTE"; echo "VOICE_PATH=/voice"; }
+  true
+} | sudo tee /etc/default/caddy >/dev/null
 sudo mkdir -p /etc/systemd/system/caddy.service.d
 printf '[Service]\nEnvironmentFile=/etc/default/caddy\n' | sudo tee /etc/systemd/system/caddy.service.d/site.conf >/dev/null
 sudo systemctl daemon-reload

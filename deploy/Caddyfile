@@ -1,14 +1,21 @@
 # Unspoken on one machine: the built site, plus the servers under /api, /voice and /voicebank.
 # {$SITE} is the public hostname, e.g. 147-224-207-225.sslip.io; Caddy gets its certificate.
+#
+# Lip reading and voice can run elsewhere (e.g. a teammate's machine behind a tunnel): set
+# API_UPSTREAM / VOICE_UPSTREAM in /etc/default/caddy to its base URL, and API_PATH / VOICE_PATH
+# to the path it serves them under ("/api", "/voice"). Unset, they're this machine's own servers.
 {$SITE} {
 	encode zstd gzip
 
 	# lip reader: HTTP and the /stream WebSocket
 	handle_path /api/* {
-		reverse_proxy localhost:8000
+		rewrite * {$API_PATH:}{uri}
+		reverse_proxy {$API_UPSTREAM:localhost:8000} {
+			header_up Host {upstream_hostport}
+		}
 	}
 
-	# voicebank: accounts, banked voices, speech in them (uploads up to 500 MB)
+	# voicebank (accounts, banked voices) always runs here; uploads up to 500 MB
 	handle_path /voicebank/* {
 		reverse_proxy localhost:8003 {
 			flush_interval -1
@@ -17,7 +24,9 @@
 
 	# voice: stream audio as it's generated, don't buffer it
 	handle_path /voice/* {
-		reverse_proxy localhost:8001 {
+		rewrite * {$VOICE_PATH:}{uri}
+		reverse_proxy {$VOICE_UPSTREAM:localhost:8001} {
+			header_up Host {upstream_hostport}
 			flush_interval -1
 		}
 	}

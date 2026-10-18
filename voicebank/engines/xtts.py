@@ -6,6 +6,7 @@ Its own model instance and lock, so banking never waits on the voice server (and
 
 import io
 import os
+import queue
 import threading
 
 import numpy as np
@@ -68,7 +69,23 @@ class XTTSEngine(VoiceEngine):
         return d["gpt_cond_latent"].to(self._device), d["speaker_embedding"].to(self._device)
 
     def speak_stream(self, text, voice, language="en"):
+        """Yields PCM chunks as XTTS makes them. Generation runs on its own thread to the end,
+        so a listener who disconnects mid-sentence can't leave the lock held forever."""
         gpt, spk = self._latents(voice)
-        with self.lock:
-            for chunk in self._model().inference_stream(text, language, gpt, spk, stream_chunk_size=STREAM_CHUNK):
-                yield _to_pcm(chunk)
+        q = queue.Queue()
+
+        def work():
+            try:
+                with self.lock:
+                    for chunk in self._model().inference_stream(text, language, gpt, spk, stream_chunk_size=STREAM_CHUNK):
+                        q.put(_to_pcm(chunk))
+            except Exception as e:  # noqa: BLE001 - handed to the reader
+                q.put(e)
+            finally:
+                q.put(None)
+
+        threading.Thread(target=work, daemon=True).start()
+        while (item := q.get()) is not None:
+            if isinstance(item, Exception):
+                raise item
+            yield item

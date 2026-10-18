@@ -15,6 +15,7 @@ Test:   python voice.py "I need water"     -> writes out.wav
 
 import hashlib
 import os
+import queue
 import sys
 import threading
 import wave
@@ -84,12 +85,39 @@ def _to_pcm(audio):
 
 
 def _save(path, pcm):
+    """Writes the cache file in one step, so a reader never finds it half written."""
     os.makedirs(CACHE_DIR, exist_ok=True)
-    with wave.open(path, "wb") as w:
+    tmp = f"{path}.{threading.get_ident()}.part"
+    with wave.open(tmp, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(SAMPLE_RATE)
         w.writeframes(pcm)
+    os.replace(tmp, path)
+
+
+def background_stream(generate):
+    """Runs `generate` (a generator of chunks) to the end on its own thread and yields its chunks.
+
+    The caller can stop reading at any time (a browser closing the connection mid-sentence)
+    without leaving the generator suspended inside a `with _lock:`, which would hold the lock
+    forever and stall every later sentence."""
+    q = queue.Queue()
+
+    def work():
+        try:
+            for chunk in generate():
+                q.put(chunk)
+        except Exception as e:  # noqa: BLE001 - handed to the reader
+            q.put(e)
+        finally:
+            q.put(None)
+
+    threading.Thread(target=work, daemon=True).start()
+    while (item := q.get()) is not None:
+        if isinstance(item, Exception):
+            raise item
+        yield item
 
 
 def speak_to_file(text, language="en", voice=None):
@@ -113,13 +141,16 @@ def speak_stream(text, language="en", voice=None):
             yield w.readframes(w.getnframes())
         return
 
-    chunks = []
-    with _lock:
-        model = _model().synthesizer.tts_model
-        for chunk in model.inference_stream(text, language, *_conditioning(voice), stream_chunk_size=STREAM_CHUNK):
-            chunks.append(_to_pcm(chunk))
-            yield chunks[-1]
-    _save(path, b"".join(chunks))
+    def generate():
+        chunks = []
+        with _lock:
+            model = _model().synthesizer.tts_model
+            for chunk in model.inference_stream(text, language, *_conditioning(voice), stream_chunk_size=STREAM_CHUNK):
+                chunks.append(_to_pcm(chunk))
+                yield chunks[-1]
+        _save(path, b"".join(chunks))  # cached even if the listener left early
+
+    yield from background_stream(generate)
 
 
 def warm_cache(phrases, language="en"):
