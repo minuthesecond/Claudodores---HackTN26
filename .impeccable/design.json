@@ -1,0 +1,423 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T00:03:26+00:00",
+  "title": "Design System: Unspoken",
+  "extensions": {
+    "colorMeta": {
+      "cobalt": {
+        "role": "primary",
+        "displayName": "Table Cobalt",
+        "canonical": "oklch(43.8% 0.202 266.3)",
+        "tonalRamp": [
+          "#020039",
+          "#060475",
+          "#1127a8",
+          "#294dcd",
+          "#4874f7",
+          "#7ea1f8",
+          "#b4cafc",
+          "#e7efff"
+        ]
+      },
+      "cobalt-deep": {
+        "role": "primary",
+        "displayName": "Deep Cobalt",
+        "canonical": "oklch(37.4% 0.173 266.4)",
+        "tonalRamp": [
+          "#010036",
+          "#060375",
+          "#163099",
+          "#3052bd",
+          "#5078e6",
+          "#7da1f9",
+          "#b4cafd",
+          "#e7efff"
+        ]
+      },
+      "signal-orange": {
+        "role": "secondary",
+        "displayName": "Signal Orange",
+        "canonical": "oklch(66.6% 0.224 34.3)",
+        "tonalRamp": [
+          "#220000",
+          "#480700",
+          "#771500",
+          "#a42d0f",
+          "#e03d11",
+          "#fe7555",
+          "#ffb6a4",
+          "#fee9e4"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(20.1% 0.008 274.5)",
+        "tonalRamp": [
+          "#0a0b0f",
+          "#232428",
+          "#3e3f44",
+          "#5c5d62",
+          "#7f8085",
+          "#a3a4aa",
+          "#c9cad0",
+          "#edeef4"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "oklch(40.4% 0.017 276.6)",
+        "tonalRamp": [
+          "#090b12",
+          "#22232c",
+          "#3d3f49",
+          "#5b5d67",
+          "#7d808b",
+          "#a1a4af",
+          "#c7cad6",
+          "#ebeefa"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Pencil",
+        "canonical": "oklch(48.4% 0.016 276.8)",
+        "tonalRamp": [
+          "#090b12",
+          "#22232c",
+          "#3d3f48",
+          "#5b5d67",
+          "#7d808a",
+          "#a2a4af",
+          "#c7cad5",
+          "#ebeefa"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card Stock",
+        "canonical": "oklch(98.5% 0.004 91.4)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#252422",
+          "#40403d",
+          "#5e5d5b",
+          "#81807d",
+          "#a5a4a2",
+          "#cbcac7",
+          "#efeeeb"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Table Paper",
+        "canonical": "oklch(95.4% 0.004 106.5)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#242422",
+          "#40403d",
+          "#5e5e5b",
+          "#80807e",
+          "#a5a5a2",
+          "#cbcbc8",
+          "#efefec"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Score Line",
+        "canonical": "oklch(87.1% 0.004 121.6)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#242422",
+          "#3f403e",
+          "#5d5e5b",
+          "#80817e",
+          "#a4a5a2",
+          "#cacbc8",
+          "#eeefec"
+        ]
+      },
+      "on-cobalt": {
+        "role": "neutral",
+        "displayName": "On Cobalt",
+        "canonical": "oklch(98.5% 0.004 91.4)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#252422",
+          "#40403d",
+          "#5e5d5b",
+          "#81807d",
+          "#a5a4a2",
+          "#cbcac7",
+          "#efeeeb"
+        ]
+      },
+      "on-cobalt-2": {
+        "role": "neutral",
+        "displayName": "Cobalt Mist",
+        "canonical": "oklch(86.5% 0.048 274.9)",
+        "tonalRamp": [
+          "#06081f",
+          "#1d223b",
+          "#383e59",
+          "#555c79",
+          "#777e9d",
+          "#9ba3c3",
+          "#c1c9eb",
+          "#eaeefe"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The hero line, one per page; the price statement uses the same voice a step smaller."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings and the replay's decoded sentence."
+      },
+      "claim": {
+        "displayName": "Claim",
+        "purpose": "One large argued paragraph with 800-weight figures and orange mono footnote markers."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Step names, card band titles and card cue lines (25-28px)."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The paragraph beside a headline."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text and options; 17px under 600px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Pills, captions, card labels, legends; sentence case, no tracking."
+      },
+      "measure": {
+        "displayName": "Measure",
+        "purpose": "Clocks, frame counters, dimensions, percentages; tabular figures."
+      },
+      "measure-large": {
+        "displayName": "Measure large",
+        "purpose": "The live jawOpen value in cobalt."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-on-table",
+        "value": "0 1px 0 rgb(255 255 255 / 0.6) inset, 0 2px 4px rgb(10 20 60 / 0.12), 0 24px 48px -20px rgb(10 20 60 / 0.45)",
+        "purpose": "Every die-cut card: the hero stack, deck cards, the competitive map."
+      },
+      {
+        "name": "clipped-on",
+        "value": "0 0 0 1px #d4d5d2, 0 10px 22px -12px rgb(10 20 60 / 0.5)",
+        "purpose": "A small card clipped onto a bigger one (the model-input chip)."
+      },
+      {
+        "name": "struck-forward",
+        "value": "0 10px 20px -10px rgb(10 20 60 / 0.6)",
+        "purpose": "The picked guess, with scale(1.03)."
+      },
+      {
+        "name": "punched-hole",
+        "value": "inset 0 2px 3px rgb(0 0 0 / 0.35), 0 1px 0 rgb(255 255 255 / 0.7)",
+        "purpose": "The ring hole on every card."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All transforms and reveals: button arrow, step reveals, card deal."
+      },
+      {
+        "name": "deal-in",
+        "value": "1.1s ease, staggered 0.05s / 0.15s / 0.25s from rotated, lowered positions",
+        "purpose": "The hero fan arrives as a dealt hand; off under reduced motion."
+      },
+      {
+        "name": "deal-off",
+        "value": "scroll-driven: translate(off*70%, depth*14px + off*120%) rotate(depth*2.2deg + off*18deg) scale(1 - depth*0.04)",
+        "purpose": "Story deck: the top card slides off toward the bottom right as you scroll; opacity only drops past 90% off-stage."
+      },
+      {
+        "name": "state-color",
+        "value": "0.2s",
+        "purpose": "Background and colour changes on buttons, links, ROI box."
+      },
+      {
+        "name": "blink",
+        "value": "steps(1) 0.9-1s infinite",
+        "purpose": "Live dot, caret, recording dot."
+      },
+      {
+        "name": "jaw-replay",
+        "value": "25 fps from replay.json",
+        "purpose": "Mouth glyphs and drawings replay the real jawOpen trace; a fixed frame under reduced motion."
+      },
+      {
+        "name": "smooth-scroll",
+        "value": "Lenis lerp 0.1, anchor offset -72px",
+        "purpose": "Inertial scrolling; disabled under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-split",
+        "value": "1100px"
+      },
+      {
+        "name": "pinned-deck",
+        "value": "900px"
+      },
+      {
+        "name": "small",
+        "value": "600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Card Button",
+      "kind": "button",
+      "refersTo": "button-card",
+      "description": "The demo action on the cobalt table: card stock tab that fills orange on hover.",
+      "html": "<div class=\"ds-table\"><a class=\"ds-btn ds-btn-card\" href=\"#\">Try the live demo <svg class=\"ds-arrow\" viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M3 10h13M11 4.5 16.5 10 11 15.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"/></svg></a></div>",
+      "css": ".ds-btn{height:54px;padding:0 22px 0 24px;display:inline-flex;align-items:center;gap:12px;border:0;border-radius:14px;font:700 17px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s,transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-arrow{width:18px;height:18px;transition:transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-btn:hover .ds-arrow{transform:translateX(4px)} .ds-btn:active{transform:translateY(1px)} .ds-btn:focus-visible{outline:3px solid #ff4a1c;outline-offset:3px} .ds-table{background:#1f3fbf;padding:32px} .ds-btn-card{background:#fbfaf7;color:#15161a;text-decoration:none} .ds-btn-card:hover{background:#ff4a1c}"
+    },
+    {
+      "name": "Ink Button",
+      "kind": "button",
+      "refersTo": "button-ink",
+      "description": "Primary action on the orange field; turns cobalt on hover.",
+      "html": "<div class=\"ds-orange\"><a class=\"ds-btn ds-btn-ink\" href=\"#\">Try the live demo <svg class=\"ds-arrow\" viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M3 10h13M11 4.5 16.5 10 11 15.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"/></svg></a></div>",
+      "css": ".ds-btn{height:54px;padding:0 22px 0 24px;display:inline-flex;align-items:center;gap:12px;border:0;border-radius:14px;font:700 17px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s,transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-arrow{width:18px;height:18px;transition:transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-btn:hover .ds-arrow{transform:translateX(4px)} .ds-btn:active{transform:translateY(1px)} .ds-btn:focus-visible{outline:3px solid #ff4a1c;outline-offset:3px} .ds-orange{background:#ff4a1c;padding:32px} .ds-btn-ink{background:#15161a;color:#fbfaf7;text-decoration:none} .ds-btn-ink:hover{background:#1f3fbf}"
+    },
+    {
+      "name": "Line Button",
+      "kind": "button",
+      "refersTo": "button-line",
+      "description": "Secondary action on the orange field: 2px inset ink stroke, fills ink on hover.",
+      "html": "<div class=\"ds-orange\"><a class=\"ds-btn ds-btn-line\" href=\"#\">Read the source</a></div>",
+      "css": ".ds-btn{height:54px;padding:0 22px 0 24px;display:inline-flex;align-items:center;gap:12px;border:0;border-radius:14px;font:700 17px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s,transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-arrow{width:18px;height:18px;transition:transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-btn:hover .ds-arrow{transform:translateX(4px)} .ds-btn:active{transform:translateY(1px)} .ds-btn:focus-visible{outline:3px solid #ff4a1c;outline-offset:3px} .ds-orange{background:#ff4a1c;padding:32px} .ds-btn-line{background:transparent;color:#15161a;box-shadow:inset 0 0 0 2px #15161a;text-decoration:none} .ds-btn-line:hover{background:#15161a;color:#fbfaf7}"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Sticky cobalt bar: block-and-slit logo, centred section links in cobalt mist, card-button action.",
+      "html": "<header class=\"ds-nav\"><a class=\"ds-brand\" href=\"#\"><svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect width=\"24\" height=\"24\" fill=\"#fbfaf7\"/><rect x=\"5\" y=\"11\" width=\"14\" height=\"2.5\" fill=\"#ff4a1c\"/></svg><span>Unspoken</span></a><nav class=\"ds-links\"><a href=\"#\">How it works</a><a href=\"#\">Why it matters</a><a href=\"#\">For hospitals</a></nav><a class=\"ds-btn ds-btn-card ds-nav-cta\" href=\"#\">Try the live demo <svg class=\"ds-arrow\" viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M3 10h13M11 4.5 16.5 10 11 15.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"/></svg></a></header>",
+      "css": ".ds-btn{height:54px;padding:0 22px 0 24px;display:inline-flex;align-items:center;gap:12px;border:0;border-radius:14px;font:700 17px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s,transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-arrow{width:18px;height:18px;transition:transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-btn:hover .ds-arrow{transform:translateX(4px)} .ds-btn:active{transform:translateY(1px)} .ds-btn:focus-visible{outline:3px solid #ff4a1c;outline-offset:3px} .ds-nav{height:72px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 32px;background:#1f3fbf;color:#fbfaf7;font-family:'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif} .ds-brand{display:inline-flex;align-items:center;gap:12px;font:800 22px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;letter-spacing:-.02em;color:#fbfaf7;text-decoration:none} .ds-links{display:flex;gap:36px;font-weight:600;font-size:16px} .ds-links a{color:#c9d1f3;text-decoration:none;transition:color .2s} .ds-links a:hover{color:#fbfaf7} .ds-links a:focus-visible{outline:3px solid #ff4a1c;outline-offset:3px} .ds-nav-cta{justify-self:end;height:44px;padding:0 16px 0 18px;font-size:15px;background:#fbfaf7;color:#15161a;text-decoration:none} .ds-nav-cta:hover{background:#ff4a1c}"
+    },
+    {
+      "name": "State Pill",
+      "kind": "chip",
+      "refersTo": "state-pill",
+      "description": "Replay state: idle on paper, live in orange with a blinking ink dot, final in cobalt.",
+      "html": "<div class=\"ds-row\"><span class=\"ds-pill\"><i></i>Waiting</span><span class=\"ds-pill ds-live\"><i></i>Reading lips</span><span class=\"ds-pill ds-final\"><i></i>Final</span></div>",
+      "css": ".ds-row{display:flex;gap:10px;padding:16px;background:#fbfaf7} .ds-pill{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px;border-radius:999px;background:#f0f0ed;color:#464852;font:700 14px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif} .ds-pill i{width:8px;height:8px;border-radius:50%;background:#5c5e68} .ds-live{background:#ff4a1c;color:#15161a} .ds-live i{background:#15161a;animation:ds-blink .9s steps(1) infinite} .ds-final{background:#1f3fbf;color:#fbfaf7} .ds-final i{background:#fbfaf7} @keyframes ds-blink{50%{opacity:0}} @media (prefers-reduced-motion:reduce){.ds-live i{animation:none}}"
+    },
+    {
+      "name": "Articulation Card",
+      "kind": "card",
+      "refersTo": "articulation-card",
+      "description": "Die-cut deck card: coloured step band with a ring hole, card-stock body with a paper well holding a two-ink mouth drawing and a cue line.",
+      "html": "<div class=\"ds-table\"><article class=\"ds-card\"><header class=\"ds-band\"><span class=\"ds-hole\"></span><span>Bank</span><span class=\"ds-when\">Before surgery</span></header><div class=\"ds-body\"><div class=\"ds-view\"><svg class=\"ds-lips\" viewBox=\"0 0 100 64\" aria-hidden=\"true\"><path class=\"ds-cav\" d=\"M10.6,32 C26.6,25.3 73.4,25.3 89.4,32 C73.4,38.7 26.6,38.7 10.6,32Z\"/><path class=\"ds-up\" d=\"M10.6,32 C22.6,23 34,16 42,16 Q46,16 50,19.5 Q54,16 58,16 C66,16 77.4,23 89.4,32 C73.4,25.3 26.6,25.3 10.6,32Z\"/><path class=\"ds-lo\" d=\"M10.6,32 C26.6,38.7 73.4,38.7 89.4,32 C75.4,55.3 24.6,55.3 10.6,32Z\"/></svg></div><span class=\"ds-label\">Read aloud</span><p class=\"ds-prompt\">The boat sailed across the bay before dawn.</p><span class=\"ds-bar\"><i></i></span></div></article></div>",
+      "css": ".ds-hole{position:absolute;width:16px;height:16px;border-radius:50%;background:#1f3fbf;box-shadow:inset 0 2px 3px rgb(0 0 0 / .35),0 1px 0 rgb(255 255 255 / .7)} .ds-lips{display:block;overflow:visible} .ds-up,.ds-lo{fill:#fbfaf7;stroke-width:3.2;stroke-linejoin:round} .ds-up{stroke:#15161a} .ds-lo{stroke:#ff4a1c} .ds-cav{fill:#15161a} .ds-table{background:#1f3fbf;padding:40px} .ds-card{max-width:340px;overflow:hidden;border-radius:22px;background:#fbfaf7;color:#15161a;box-shadow:0 1px 0 rgb(255 255 255 / 0.6) inset, 0 2px 4px rgb(10 20 60 / 0.12), 0 24px 48px -20px rgb(10 20 60 / 0.45);font-family:'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;transition:transform .4s cubic-bezier(0.16,1,0.3,1)} .ds-card:hover{transform:rotate(-1.5deg) translateY(-4px)} .ds-band{position:relative;display:flex;align-items:baseline;gap:12px;padding:18px 22px 16px 48px;font:800 26px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;letter-spacing:-.02em;background:#1f3fbf;color:#fbfaf7} .ds-band .ds-hole{left:20px;top:21px;background:#17319a} .ds-when{margin-left:auto;font:600 14px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif} .ds-body{display:flex;flex-direction:column;gap:14px;padding:20px 22px 22px} .ds-view{display:grid;place-items:center;height:150px;border-radius:12px;background:#f0f0ed} .ds-view .ds-lips{width:70%} .ds-label{font:600 14px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;color:#5c5e68} .ds-prompt{margin:0;font:800 25px/1.12 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;letter-spacing:-.02em} .ds-bar{display:block;height:6px;border-radius:3px;background:#f0f0ed;overflow:hidden} .ds-bar i{display:block;width:57%;height:100%;border-radius:3px;background:#ff4a1c}"
+    },
+    {
+      "name": "Guess List",
+      "kind": "custom",
+      "refersTo": "guess",
+      "description": "All three guesses on the card; the chosen one is struck forward in ink.",
+      "html": "<ol class=\"ds-guesses\"><li class=\"ds-picked\">I need water</li><li>I need a walk</li><li>I’m not worried</li></ol>",
+      "css": ".ds-guesses{list-style:none;margin:0;padding:20px;display:grid;gap:8px;max-width:300px;background:#fbfaf7} .ds-guesses li{padding:13px 14px;border-radius:12px;background:#f0f0ed;font:700 19px/1 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;color:#5c5e68;transition:transform .4s cubic-bezier(0.16,1,0.3,1),background .2s,color .2s} .ds-guesses li:hover{background:#d4d5d2;color:#15161a} .ds-guesses li.ds-picked{background:#15161a;color:#fbfaf7;transform:scale(1.03);box-shadow:0 10px 20px -10px rgb(10 20 60 / .6)}"
+    },
+    {
+      "name": "Mouth Glyph",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "The brand's two-bar mouth: ink bar above, orange bar below, parted by the jaw signal.",
+      "html": "<div class=\"ds-glyph-wrap\"><svg class=\"ds-glyph\" viewBox=\"0 0 100 100\" aria-hidden=\"true\"><rect class=\"ds-gt\" x=\"19.6\" y=\"34.6\" width=\"60.8\" height=\"9\" rx=\"1.5\"/><rect class=\"ds-gb\" x=\"19.6\" y=\"56.4\" width=\"60.8\" height=\"9\" rx=\"1.5\"/></svg></div>",
+      "css": ".ds-glyph-wrap{padding:24px;background:#f0f0ed} .ds-glyph{width:60px;height:60px;padding:6px;border-radius:14px;background:#fbfaf7;box-shadow:0 0 0 2px #ff4a1c} .ds-gt{fill:#15161a} .ds-gb{fill:#ff4a1c}"
+    },
+    {
+      "name": "Headline Underline",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "The lower-lip underline beneath the key phrase of a headline.",
+      "html": "<h2 class=\"ds-h2\">Losing your voice shouldn’t mean <span class=\"ds-under\">losing a say.</span></h2>",
+      "css": ".ds-h2{margin:0;padding:24px;background:#f0f0ed;color:#15161a;font:800 48px/1.02 'Atkinson Hyperlegible Next Variable','Helvetica Neue',Arial,sans-serif;letter-spacing:-.03em;text-wrap:balance} .ds-under{background:linear-gradient(#ff4a1c,#ff4a1c) 0 92% / 100% .12em no-repeat;padding-bottom:.04em}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Articulation Deck",
+    "overview": "**Creative North Star: \"The Articulation Deck\"**\n\nScope: this system governs the public landing page (`/`, `frontend/src/landing/`). The `/app` lip reader (`frontend/src/App.tsx`, `frontend/src/styles.css`: IBM Plex, uppercase labels, black with #ff3d00, light and dark tokens) is a separate, older system that was intentionally left as is. Do not reconcile the two, do not carry these tokens into `/app`, and do not pull the app's faces or colours into the landing page unless the user asks for that migration.\n\nThe landing page is a speech-language pathologist's deck of articulation cards laid on a cobalt table. Each card is die-cut from coated card stock with round corners and a punched ring hole; on it, a two-ink drawing of a mouth (upper lip in ink, lower lip in signal orange) becomes words in the patient's own voice. Proof sits on the top card: the real pipeline replay, the 96×96 model input clipped on as a small card of its own, and the real jawOpen trace. Concept screens of the planned phone app are drawn as articulation cards, never as phone frames.\n\nThe register is clinical-grade, not childlike: three inks only, Atkinson Hyperlegible for every word, its mono for every measurement, sentence case throughout, large confident 800-weight headlines with tight negative tracking. Density is low and sections breathe; the cobalt field and the orange field are the only full-bleed colour, with card stock and paper between them. Motion is the deck dealing: cards arrive fanned, and in the story section the top card slides off as you scroll.",
+    "keyCharacteristics": [
+      "Three inks (cobalt, signal orange, ink) on card stock and paper; every tint is an alpha of one of those inks.",
+      "Die-cut cards (22px corners) with a punched ring hole, lifted off the table by a soft layered shadow.",
+      "The brand's two-bar mouth: ink above, orange below. Orange is the lower lip wherever it appears.",
+      "Words in Atkinson Hyperlegible Next; counts, clocks, values and footnote markers in Atkinson Hyperlegible Mono with tabular figures.",
+      "Sentence case, no tracking on labels; negative tracking only on 800-weight display.",
+      "The real jawOpen signal drives the mouth drawings and the replay graph; the motion is real speech without a face."
+    ],
+    "rules": [
+      {
+        "name": "The Three Inks Rule",
+        "body": "Cobalt, signal orange and ink, on card stock and paper. No fourth hue. A tint is an alpha of an ink (the graph area is cobalt at 14%, the clip window cobalt at 8%, the map's winning quadrant orange at 10%), never a new colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Lower Lip Rule",
+        "body": "Orange marks what is spoken, live or chosen: the lower lip, the underline, the active rule, the live state. Ink is the upper lip. When the two appear together, ink is on top and orange below.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink-On-Orange Rule",
+        "body": "Small text never sits in orange on stock (3.2:1), and text set on orange is ink (5.4:1). Card stock on orange is allowed only at display size.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Voices Rule",
+        "body": "Words are set in Atkinson Hyperlegible Next; anything measured (a count, a time, a value, a size, a footnote number) is set in Atkinson Hyperlegible Mono with tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "No uppercase and no added letter-spacing on labels. Tracking only tightens, and only on 800-weight type at 25px and up.",
+        "section": "typography"
+      },
+      {
+        "name": "The Card Stock Rule",
+        "body": "Only cards cast shadows, and card stock stays opaque: a card leaving the stage moves out of frame before it fades.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Ring Hole Rule",
+        "body": "A card is a card because it has a punched hole. The hole shows the surface underneath (cobalt on the table, paper on the page, a deeper band tone inside a coloured band).",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do build every surface from cobalt, signal orange and ink on card stock (#fbfaf7) and paper (#f0f0ed); make tints as alphas of those inks.",
+      "Do put the orange under things: the lower lip, a 0.12em underline beneath the key phrase, the active rule, the live state.",
+      "Do give every card 22px corners, a punched ring hole and the layered card shadow, and keep card stock opaque while it moves.",
+      "Do set measurements in Atkinson Hyperlegible Mono with tabular figures, and words in Atkinson Hyperlegible Next.",
+      "Do drive mouth motion from the real jawOpen trace, and hold a still frame under prefers-reduced-motion (the deal-in animation and smooth scrolling are also off).",
+      "Do draw concept screens of the phone app as articulation cards."
+    ],
+    "donts": [
+      "Don't use faces as decoration; the only face on the page is the real clip inside the pipeline replay. Decoration is the mouth glyph or the mouth drawing.",
+      "Don't add a fourth hue, or set small text in orange on light stock.",
+      "Don't uppercase labels or add letter-spacing to them.",
+      "Don't draw the app inside a phone frame or beside the headline as a mockup.",
+      "Don't apply this system to `/app`, or bring IBM Plex, uppercase labels or #ff3d00 from `/app` into the landing page."
+    ]
+  }
+}
