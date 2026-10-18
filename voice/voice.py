@@ -26,7 +26,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SPEAKER = os.environ.get("VOICE_SPEAKER", "Claribel Dervla")  # an XTTS built-in voice
 VOICE_SAMPLE = os.environ.get("VOICE_SAMPLE")  # optional: clone this recording instead
 CACHE_DIR = os.path.join(HERE, "voice_cache")
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+# Apple-silicon GPUs (mps) start speaking in ~0.2 s and keep up with playback; CPU takes ~1 s and falls behind
+DEVICE = os.environ.get("VOICE_DEVICE") or (
+    "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+)
+STREAM_CHUNK = int(os.environ.get("VOICE_STREAM_CHUNK", 10))  # smaller: first audio sooner (XTTS default 20)
 SAMPLE_RATE = 24000  # XTTS-v2 output: 24 kHz, mono, 16-bit
 
 _tts = None
@@ -60,10 +64,10 @@ def _conditioning(voice):
         if voice.startswith("clone:"):
             if not os.path.isfile(VOICE_SAMPLE):
                 raise FileNotFoundError(f"Voice sample not found: {VOICE_SAMPLE}")
-            _latents[voice] = model.get_conditioning_latents(audio_path=[VOICE_SAMPLE])
+            _latents[voice] = tuple(t.to(DEVICE) for t in model.get_conditioning_latents(audio_path=[VOICE_SAMPLE]))
         elif voice in model.speaker_manager.speakers:
             s = model.speaker_manager.speakers[voice]
-            _latents[voice] = (s["gpt_cond_latent"], s["speaker_embedding"])
+            _latents[voice] = (s["gpt_cond_latent"].to(DEVICE), s["speaker_embedding"].to(DEVICE))
         else:
             raise ValueError(f"Unknown voice {voice!r}. Built-in voices: {', '.join(speakers())}")
     return _latents[voice]
@@ -112,7 +116,7 @@ def speak_stream(text, language="en", voice=None):
     chunks = []
     with _lock:
         model = _model().synthesizer.tts_model
-        for chunk in model.inference_stream(text, language, *_conditioning(voice)):
+        for chunk in model.inference_stream(text, language, *_conditioning(voice), stream_chunk_size=STREAM_CHUNK):
             chunks.append(_to_pcm(chunk))
             yield chunks[-1]
     _save(path, b"".join(chunks))
