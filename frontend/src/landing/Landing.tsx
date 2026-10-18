@@ -1,249 +1,290 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Logo } from '../components/Icons'
-import { Phone, type Screen } from './Phone'
+import { STEPS, StepCard } from './Deck'
+import { MouthGlyph } from './glyph'
 import { Replay } from './Replay'
-import { useSmoothParallax } from './motion'
+import { useScrollProgress, useSmoothScroll } from './motion'
+import '@fontsource-variable/atkinson-hyperlegible-next/wght.css'
+import '@fontsource-variable/atkinson-hyperlegible-mono/wght.css'
 import './landing.css'
 
 const REPO = 'https://github.com/minuthesecond/Claudodores---HackTN26'
 
-const STEPS: { screen: Screen; n: string; title: string; line: string }[] = [
-  { screen: 'bank', n: '01', title: 'Bank', line: 'Fifteen minutes on camera before surgery.' },
-  { screen: 'train', n: '02', title: 'Train', line: 'A clone of your voice. A model of your lips.' },
-  { screen: 'speak', n: '03', title: 'Speak', line: 'Mouth it, tap the right guess, hear yourself.' },
-]
-
 // Business plan figures, with their sources
-const STATS = [
-  { value: '12,290', label: 'Americans diagnosed with laryngeal cancer each year', source: 'American Cancer Society, 2026 est.' },
-  { value: '75–100K', label: 'Adults who get a tracheostomy each year', source: 'From ASHA incidence rates' },
-  { value: '3×', label: 'Preventable adverse events when patients can’t communicate', source: 'Bartlett et al., CMAJ 2008' },
+const SOURCES = [
+  'American Cancer Society, Cancer Facts & Figures 2026 (estimate).',
+  'Derived from ASHA incidence rates.',
+  'Bartlett G. et al., “Impact of patient communication problems on the risk of preventable adverse events in acute care settings,” CMAJ 2008.',
 ]
 
-const FILM_ROWS = [0, 2, 4] // sprite rows used in the film strip
+// The business plan's competitive map: x = silent, no typing; y = sounds like the patient
+const OPTIONS = [
+  { x: 0.12, y: 0.78, name: 'Typing + banked voice', trade: 'Sounds like them, but every sentence is typed.' },
+  { x: 0.16, y: 0.16, name: 'Whiteboard, letter board', trade: 'Slow, and no voice at all.' },
+  { x: 0.62, y: 0.3, name: 'Electrolarynx', trade: 'Fast, held to the throat, robotic.' },
+  { x: 0.86, y: 0.14, name: 'Lip-reading apps', trade: 'Silent, but a stranger’s voice.' },
+]
+
+function Arrow() {
+  return (
+    <svg className="lp-arrow" viewBox="0 0 20 20" aria-hidden>
+      <path d="M3 10h13M11 4.5 16.5 10 11 15.5" fill="none" stroke="currentColor" strokeWidth="2.2" />
+    </svg>
+  )
+}
 
 export function Landing() {
-  const root = useRef<HTMLDivElement>(null)
-  useSmoothParallax(root)
+  useSmoothScroll()
+  const heroCta = useRef<HTMLAnchorElement>(null)
+  const [ctaInView, setCtaInView] = useState(true)
+
+  // one "Try the live demo" at a time: the nav's appears once the hero's scrolls away
+  useEffect(() => {
+    const el = heroCta.current
+    if (!el) return
+    const io = new IntersectionObserver(([e]) => setCtaInView(e.isIntersecting), { rootMargin: '-72px 0px 0px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
-    document.title = 'UNSPOKEN — Speak again, in your own voice'
+    document.title = 'Unspoken — Speak again, in your own voice'
   }, [])
 
   return (
-    <div className="lp" ref={root}>
+    <div className="lp">
+      <a className="lp-skip" href="#main">
+        Skip to content
+      </a>
       <header className="lp-nav">
-        <a className="lp-brand" href="/">
-          <Logo />
+        <a className="lp-brand" href="/" aria-label="Unspoken, home">
+          <Logo size={26} />
           <span>Unspoken</span>
         </a>
-        <nav className="lp-links">
+        <nav className="lp-links" aria-label="Sections">
           <a href="#how">How it works</a>
-          <a href="#why">Why</a>
-          <a href="#hospitals">Hospitals</a>
+          <a href="#why">Why it matters</a>
+          <a href="#hospitals">For hospitals</a>
         </nav>
-        <a className="lp-btn lp-btn-solid lp-nav-cta" href="/app">
-          Try the demo
+        <a
+          className={`lp-btn lp-btn-card lp-nav-cta ${ctaInView ? 'is-hidden' : ''}`}
+          href="/app"
+          tabIndex={ctaInView ? -1 : undefined}
+          aria-hidden={ctaInView || undefined}
+        >
+          Try the live demo
+          <Arrow />
         </a>
       </header>
 
-      {/* ------------------------------------------------------------ hero */}
-      <section className="lp-hero lp-wrap">
-        <div className="lp-hero-copy">
-          <h1 className="lp-title">
-            <span className="lp-line" data-x="-0.12">
-              Mouth it.
-            </span>
-            <span className="lp-line" data-x="0.08">
-              Hear
-            </span>
-            <span className="lp-line" data-x="-0.05">
-              <em>yourself.</em>
-            </span>
-          </h1>
-          <p className="lp-lede">For people who lose their voice. Speak again, in your own.</p>
-          <div className="lp-actions">
-            <a className="lp-btn lp-btn-solid" href="/app">
-              Try the demo
-            </a>
-            <a className="lp-btn" href="#how">
-              How it works
-            </a>
+      <main id="main">
+        {/* ------------------------------------------------------------ hero */}
+        <section className="lp-hero">
+          <div className="lp-wrap lp-hero-top">
+            <h1 className="lp-title">
+              <span>Mouth it.</span>
+              <span>
+                Hear <span className="lp-under">yourself.</span>
+              </span>
+            </h1>
+            <div className="lp-hero-aside">
+              <p className="lp-lede">
+                Unspoken reads a patient’s lips and speaks for them in their own voice, for people who lose
+                it to a laryngectomy or tracheostomy.
+              </p>
+              <a className="lp-btn lp-btn-card" href="/app" ref={heroCta}>
+                Try the live demo
+                <Arrow />
+              </a>
+            </div>
           </div>
-        </div>
-        <div className="lp-hero-phone" data-y="-0.12">
-          <Phone screen="speak" />
-        </div>
-      </section>
 
-      {/* ------------------------------------------------------ film strip */}
-      <section className="lp-film" aria-label="Lip outlines tracked from a real clip">
-        {FILM_ROWS.map((row, i) => (
-          <div
-            key={row}
-            className="lp-film-row"
-            data-bg={i % 2 ? 0.35 : -0.35}
-            style={{ backgroundPositionY: `${(row / 5) * 100}%` }}
-          />
-        ))}
-        <p className="lp-caption lp-wrap">Lip landmarks from a real clip · 25 frames a second</p>
-      </section>
+          <div className="lp-wrap">
+            <div className="lp-stack">
+              <span className="lp-stack-card lp-stack-a" aria-hidden />
+              <span className="lp-stack-card lp-stack-b" aria-hidden />
+              <div className="lp-stack-top">
+                <span className="lp-hole" aria-hidden />
+                <Replay />
+              </div>
+            </div>
+            <p className="lp-note">
+              A real three-second clip, read by the working prototype. The model sees only the mouth.
+            </p>
+          </div>
+        </section>
 
-      {/* --------------------------------------------------------- problem */}
-      <section className="lp-why lp-wrap" id="why">
-        <h2 className="lp-big" data-x="-0.04">
-          Losing your voice
-          <br />
-          shouldn’t mean <em>losing a say.</em>
-        </h2>
-        <div className="lp-stats">
-          {STATS.map((s, i) => (
-            <figure key={s.value} className="lp-stat" data-y={0.04 + i * 0.04}>
-              <span className="lp-stat-value">{s.value}</span>
-              <figcaption>
-                <span>{s.label}</span>
-                <small>{s.source}</small>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
-
-      {/* ------------------------------------------------- pinned story */}
-      <Story />
-
-      {/* ---------------------------------------------------------- map */}
-      <section className="lp-map-section lp-wrap">
-        <h2 className="lp-map-title">
-          <span className="lp-line">Silent.</span>
-          <span className="lp-line">Sounds like</span>
-          <span className="lp-line">
-            <em>you.</em>
-          </span>
-        </h2>
-        <CompetitiveMap />
-      </section>
-
-      {/* -------------------------------------------------------- proof */}
-      <section className="lp-proof lp-wrap">
-        <div className="lp-proof-head">
-          <span className="lp-tag">Working prototype</span>
-          <h2>It already reads lips.</h2>
-        </div>
-        <div data-y="-0.06">
-          <Replay />
-        </div>
-      </section>
-
-      {/* ---------------------------------------------------- hospitals */}
-      <section className="lp-hospitals" id="hospitals">
-        <div className="lp-wrap lp-hospitals-grid" data-y="-0.25">
-          <h2>
-            <span className="lp-line" data-x="0.1">
-              $400 a patient.
-            </span>
-            <span className="lp-line" data-x="-0.08">
-              <em>Patients pay nothing.</em>
-            </span>
+        {/* --------------------------------------------------------- problem */}
+        <section className="lp-why lp-wrap" id="why">
+          <h2 className="lp-h2">
+            Losing your voice shouldn’t mean <span className="lp-under">losing a say.</span>
           </h2>
-          <div className="lp-hospitals-side">
-            <p>Licensed to cancer centers and hospitals. Fits the speech therapy visit that already happens before surgery.</p>
-            <a className="lp-btn lp-btn-accent" href="/app">
-              Try the demo
-            </a>
+          <div className="lp-why-body">
+            <p className="lp-claim">
+              Every year <strong>12,290</strong>
+              <sup>1</sup> Americans are diagnosed with laryngeal cancer, and <strong>75–100K</strong>
+              <sup>2</sup> adults get a tracheostomy. Patients who can’t communicate are <strong>three times</strong>
+              <sup>3</sup> as likely to suffer a preventable adverse event in hospital.
+            </p>
+            <ol className="lp-sources">
+              {SOURCES.map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ol>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <footer className="lp-foot lp-wrap">
-        <span>Unspoken · HackTN 2026 · The Claudodores</span>
-        <span>Prototype. Not a medical device.</span>
-        <a href={REPO}>Source</a>
+        {/* ------------------------------------------------ the dealt deck */}
+        <Story />
+
+        {/* ---------------------------------------------------------- map */}
+        <section className="lp-map-section lp-wrap">
+          <h2 className="lp-h2 lp-map-title">The only option that’s silent and still sounds like them.</h2>
+          <div className="lp-map-grid">
+            <CompetitiveMap />
+            <ul className="lp-options">
+              {OPTIONS.map((o) => (
+                <li key={o.name}>
+                  <strong>{o.name}</strong>
+                  <span>{o.trade}</span>
+                </li>
+              ))}
+              <li className="is-us">
+                <strong>Unspoken</strong>
+                <span>Mouth it, confirm it, heard in their own voice.</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------- hospitals */}
+        <section className="lp-hospitals" id="hospitals">
+          <div className="lp-wrap lp-hospitals-grid">
+            <h2 className="lp-price">
+              <span>$400 a patient.</span>
+              <span>Patients pay nothing.</span>
+            </h2>
+            <div className="lp-hospitals-side">
+              <p>
+                Licensed to cancer centers and hospitals. Banking fits the speech therapy visit that already
+                happens before surgery, so there is no new appointment to schedule.
+              </p>
+              <div className="lp-actions">
+                <a className="lp-btn lp-btn-ink" href="/app">
+                  Try the live demo
+                  <Arrow />
+                </a>
+                <a className="lp-btn lp-btn-line" href={REPO}>
+                  Read the source
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="lp-foot">
+        <div className="lp-wrap lp-foot-row">
+          <span className="lp-brand lp-brand-sm">
+            <Logo size={20} />
+            <span>Unspoken</span>
+          </span>
+          <span>HackTN 2026 · The Claudodores</span>
+          <span>Prototype. Not a medical device.</span>
+          <a href={REPO}>Source on GitHub</a>
+        </div>
       </footer>
     </div>
   )
 }
 
-/** Bank → Train → Speak, with the phone pinned while the steps scroll past. */
+/** Bank → Train → Speak: the deck sits pinned while each card is dealt off as you scroll. */
 function Story() {
   const ref = useRef<HTMLElement>(null)
+  const cards = useRef<(HTMLDivElement | null)[]>([])
   const [step, setStep] = useState(0)
+  const last = STEPS.length - 1
 
-  useEffect(() => {
-    let raf = 0
-    const tick = () => {
-      raf = requestAnimationFrame(tick)
-      const el = ref.current
-      if (!el) return
-      const r = el.getBoundingClientRect()
-      const progress = (innerHeight / 2 - r.top) / r.height
-      const next = Math.max(0, Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length)))
+  const onProgress = useCallback(
+    (p: number) => {
+      const t = p * last
+      cards.current.forEach((el, i) => {
+        if (!el) return
+        const local = t - i // >0: being dealt off; <0: waiting in the stack
+        el.style.setProperty('--off', Math.min(1, Math.max(0, local)).toFixed(4))
+        el.style.setProperty('--depth', Math.max(0, -local).toFixed(4))
+      })
+      const next = Math.min(last, Math.round(t))
       setStep((s) => (s === next ? s : next))
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [])
+    },
+    [last],
+  )
+  useScrollProgress(ref, onProgress)
 
   return (
     <section className="lp-story" id="how" ref={ref}>
       <div className="lp-story-pin lp-wrap">
-        <ol className="lp-story-steps">
-          {STEPS.map((s, i) => (
-            <li key={s.n} className={i === step ? 'is-active' : ''}>
-              <span className="lp-story-n">{s.n}</span>
-              <h3>{s.title}</h3>
-              <p>{s.line}</p>
-              <div className="lp-story-phone-sm">
-                <Phone screen={s.screen} />
-              </div>
-            </li>
-          ))}
-        </ol>
-        <div className="lp-story-phone">
-          <Phone screen={STEPS[step].screen} />
-          <div className="lp-story-dots">
+        <div className="lp-story-copy">
+          <h2 className="lp-h2">Fifteen minutes before surgery. Their own voice after.</h2>
+          <ol className="lp-steps">
             {STEPS.map((s, i) => (
-              <i key={s.n} className={i === step ? 'is-active' : ''} />
+              <li key={s.id} className={i === step ? 'is-active' : ''}>
+                <span className="lp-step-when">{s.when}</span>
+                <h3>{s.title}</h3>
+                <p>{s.line}</p>
+                <div className="lp-step-card">
+                  <StepCard step={s.id} />
+                </div>
+              </li>
             ))}
-          </div>
+          </ol>
+          <p className="lp-story-note">
+            The phone app is in design. The lip reader at the top of this page runs today.
+          </p>
+        </div>
+        <div className="lp-deck" aria-hidden>
+          {STEPS.map((s, i) => (
+            <div
+              key={s.id}
+              className="lp-deck-slot"
+              ref={(el) => {
+                cards.current[i] = el
+              }}
+              style={{ zIndex: STEPS.length - i, ['--depth' as string]: i, ['--off' as string]: 0 }}
+            >
+              <StepCard step={s.id} />
+            </div>
+          ))}
         </div>
       </div>
     </section>
   )
 }
 
-/** The business plan's competitive map: effort to communicate vs. sounds like the patient. */
+/** The business plan's competitive map, plotted on a card. */
 function CompetitiveMap() {
-  const dots = [
-    { x: 0.1, y: 0.74, label: 'Typing + banked voice' },
-    { x: 0.1, y: 0.26, label: 'Whiteboard, letter board' },
-    { x: 0.66, y: 0.38, label: 'Electrolarynx' },
-    { x: 0.84, y: 0.2, label: 'Lip-reading apps' },
-  ]
   return (
-    <figure className="lp-map">
-      <span className="lp-map-axis">↑ Sounds like you</span>
+    <figure className="lp-map" aria-label="Communication options plotted by how silent they are and how much they sound like the patient">
+      <span className="lp-hole" aria-hidden />
       <div className="lp-map-plot">
-        <span className="lp-map-q" />
-        {dots.map((d) => (
+        <span className="lp-map-q" aria-hidden />
+        <span className="lp-map-y">Sounds like them</span>
+        <span className="lp-map-x">Silent, no typing</span>
+        {OPTIONS.map((d) => (
           <span
-            key={d.label}
-            className={`lp-map-dot ${d.x > 0.6 ? 'is-left' : ''}`}
+            key={d.name}
+            className={`lp-map-dot ${d.x > 0.55 ? 'is-left' : ''}`}
             style={{ left: `${d.x * 100}%`, bottom: `${d.y * 100}%` }}
           >
             <i />
-            {d.label}
+            {d.name}
           </span>
         ))}
-        <span className="lp-map-dot is-us" style={{ left: '80%', bottom: '76%' }}>
-          <i />
+        <span className="lp-map-us" style={{ left: '84%', bottom: '80%' }}>
+          <MouthGlyph jaw={0.18} />
           Unspoken
         </span>
       </div>
-      <figcaption>
-        <span>Effort to communicate</span>
-        <span>Silent, no typing →</span>
-      </figcaption>
     </figure>
   )
 }
