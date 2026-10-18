@@ -3,23 +3,21 @@
 # Starter kit: https://github.com/ScottStroz/oci-hackathon-starterkit
 # Give the instance at least 8 OCPUs and 32 GB (the kit defaults to 1 OCPU / 4 GB, too small).
 #
-# On the instance (ssh -i key.pem opc@<public-ip>):
-#   curl -fsSL https://raw.githubusercontent.com/<org>/<repo>/voice/deploy/setup_oci.sh -o setup_oci.sh
-#   REPO=https://github.com/<org>/<repo>.git bash setup_oci.sh
+# Copy this one file to the instance and run it there:
+#   scp -i key.pem deploy/setup_oci.sh opc@<public-ip>:
+#   ssh -i key.pem opc@<public-ip> bash setup_oci.sh
 #
-# It installs everything, builds the web app, and starts three services that survive reboots:
+# It installs everything from the repo's main branch, builds the web app, and starts three
+# services that survive reboots:
 #   unspoken-lipread  lipread/server.py on 127.0.0.1:8000   (Clark + Joey)
 #   unspoken-voice    voice/voice_server.py on 127.0.0.1:8001 (Justin)
 #   caddy             https://<public-ip>.sslip.io: the web app, /api -> :8000, /voice -> :8001
 # (Caddy replaces the kit's Apache on ports 80/443, because it gets the HTTPS certificate itself.)
-#
-# Until the branches are merged, the app comes from APP_BRANCH (frontend + lipread server)
-# and voice/ + deploy/ from VOICE_BRANCH. Re-running the script updates and restarts everything.
+# Re-running the script pulls the latest main and restarts everything.
 set -euo pipefail
 
-REPO=${REPO:?set REPO to the GitHub clone URL}
-APP_BRANCH=${APP_BRANCH:-clark}
-VOICE_BRANCH=${VOICE_BRANCH:-voice}
+REPO=${REPO:-https://github.com/minuthesecond/Claudodores---HackTN26.git}
+BRANCH=${BRANCH:-main}
 FINAL_BEAM=${FINAL_BEAM:-10}  # lip-reader search width; server.py's default is 40 (slow on CPU)
 APP=/opt/unspoken  # not under /home: SELinux stops systemd services running programs from there
 WEB=/var/www/unspoken
@@ -46,13 +44,12 @@ if ! command -v caddy >/dev/null; then
 fi
 command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sudo env UV_INSTALL_DIR=/usr/local/bin sh
 
-echo "== code"
+echo "== code ($BRANCH)"
 sudo mkdir -p "$APP" && sudo chown "$USER:" "$APP"
 [ -d "$APP/.git" ] || git clone "$REPO" "$APP"
 cd "$APP"
 git fetch -q origin
-git checkout -q --detach "origin/$APP_BRANCH"
-git checkout "origin/$VOICE_BRANCH" -- voice deploy
+git checkout -q --detach "origin/$BRANCH"
 
 echo "== lip reader (models ~1.1 GB)"
 ./setup.sh
@@ -99,7 +96,25 @@ sudo systemctl disable --now httpd 2>/dev/null || true  # free ports 80/443 for 
 
 IP=$(curl -s https://ifconfig.me)
 DOMAIN=${DOMAIN:-${IP//./-}.sslip.io}
-sed "s|{\$DOMAIN}|$DOMAIN|; s|{\$WEB}|$WEB|" deploy/Caddyfile | sudo tee /etc/caddy/Caddyfile >/dev/null
+# One HTTPS address for everything, same paths the web app uses in development (vite.config.ts)
+sudo tee /etc/caddy/Caddyfile >/dev/null <<EOF
+$DOMAIN {
+	encode gzip
+	handle_path /api/* {
+		reverse_proxy 127.0.0.1:8000
+	}
+	handle_path /voice/* {
+		reverse_proxy 127.0.0.1:8001 {
+			flush_interval -1
+		}
+	}
+	handle {
+		root * $WEB
+		try_files {path} /index.html
+		file_server
+	}
+}
+EOF
 sudo systemctl enable -q caddy
 sudo systemctl restart caddy
 
