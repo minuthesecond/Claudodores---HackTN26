@@ -1,0 +1,24 @@
+# One HTTPS address for everything; setup_oci.sh fills in {$DOMAIN} and {$WEB}.
+# Caddy gets the certificate automatically (ports 80 and 443 must be open).
+{$DOMAIN} {
+	encode gzip
+
+	# Lip-reading server (HTTP + the /stream WebSocket); the web app already calls /api
+	handle_path /api/* {
+		reverse_proxy 127.0.0.1:8000
+	}
+
+	# Voice server: /voice/speak/stream?text=... etc.
+	handle_path /voice/* {
+		reverse_proxy 127.0.0.1:8001 {
+			flush_interval -1
+		}
+	}
+
+	# The built web app; unknown paths like /app fall back to index.html
+	handle {
+		root * {$WEB}
+		try_files {path} /index.html
+		file_server
+	}
+}
