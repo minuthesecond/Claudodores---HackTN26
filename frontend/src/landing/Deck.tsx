@@ -3,8 +3,8 @@ import { MouthDrawing } from './glyph'
 
 /**
  * The phone app from the business plan, drawn as articulation cards:
- * bank your voice and lips before surgery, train, then mouth a phrase,
- * pick the right guess and hear it in your own voice.
+ * collect videos of the patient talking, learn their voice and lips,
+ * then mouth a phrase and hear it in their own voice.
  */
 
 /** Animated voice level bars. */
@@ -29,21 +29,21 @@ export type Step = 'bank' | 'train' | 'speak'
 export const STEPS: { id: Step; when: string; title: string; line: string }[] = [
   {
     id: 'bank',
-    when: 'Before surgery',
-    title: 'Bank',
-    line: 'About fifteen minutes on camera, reading sentences aloud, during the speech therapy visit that already happens.',
+    when: 'Any time',
+    title: 'Collect',
+    line: 'Family send in videos of the patient talking: birthdays, holidays, old phone clips. Before a planned surgery, the patient can record their own.',
   },
   {
     id: 'train',
     when: 'Behind the scenes',
-    title: 'Train',
-    line: 'Those recordings become a clone of the patient’s voice and a model of their lips. Nobody else’s.',
+    title: 'Learn',
+    line: 'Unspoken learns their voice from those videos, and a short calibration at the bedside tunes the lip reader to how they move their lips.',
   },
   {
     id: 'speak',
-    when: 'After surgery',
+    when: 'At the bedside',
     title: 'Speak',
-    line: 'They mouth a phrase, tap the right guess, and the room hears it in their own voice.',
+    line: 'They mouth a sentence to a phone or the room’s camera. It appears as text, and the room hears it in their own voice.',
   },
 ]
 
@@ -61,28 +61,37 @@ export function StepCard({ step, style }: { step: Step; style?: CSSProperties })
   )
 }
 
+// sample clips a family might send in
+const CLIPS = [
+  { title: 'Birthday toast', from: 'From their daughter', length: '0:48', state: 'Learning' },
+  { title: 'Thanksgiving 2024', from: 'From their son', length: '2:10', state: 'Added' },
+  { title: 'Voicemail to Mom', from: 'From the patient', length: '0:22', state: 'Added' },
+]
+
 function Bank() {
   return (
     <>
-      <div className="dk-view">
-        <span className="dk-rec">
-          <i /> Recording
-        </span>
-        <MouthDrawing live className="dk-mouth" />
-      </div>
-      <span className="dk-label">Read aloud</span>
-      <p className="dk-prompt">
-        {'The boat sailed across the bay before dawn.'.split(' ').map((w, i) => (
-          <span key={i} style={{ ['--i' as string]: i }}>
-            {w}{' '}
-          </span>
+      <span className="dk-label">Videos of them talking</span>
+      <ul className="dk-clips">
+        {CLIPS.map((c, i) => (
+          <li key={c.title} style={{ ['--i' as string]: i }}>
+            <span className="dk-thumb">
+              <MouthDrawing live={i === 0} jaw={0.12} />
+              <small>{c.length}</small>
+            </span>
+            <span className="dk-clip-text">
+              <strong>{c.title}</strong>
+              <span>{c.from}</span>
+            </span>
+            <span className={`dk-clip-state ${i === 0 ? 'is-live' : ''}`}>{c.state}</span>
+          </li>
         ))}
-      </p>
+      </ul>
       <Wave bars={30} />
       <div className="dk-meter">
-        <span>Sentence 23 of 40</span>
+        <span>3 videos · 3 minutes of their voice</span>
         <span className="dk-bar">
-          <i style={{ width: '57%' }} />
+          <i className="is-filling" style={{ width: '64%' }} />
         </span>
       </div>
     </>

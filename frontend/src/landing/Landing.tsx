@@ -201,14 +201,20 @@ export function Landing() {
         <section className="lp-hospitals" id="hospitals" data-scroll>
           <div className="lp-wrap lp-hospitals-grid">
             <h2 className="lp-price">
-              <span>$400 a patient.</span>
-              <span>Patients pay nothing.</span>
+              <span>One subscription per unit.</span>
+              <span>Every patient heard.</span>
             </h2>
             <div className="lp-hospitals-side" data-reveal>
               <p>
-                Licensed to cancer centers and hospitals. Banking fits the speech therapy visit that already
-                happens before surgery, so there is no new appointment to schedule.
+                Hospitals already subscribe to video interpreter services. Unspoken works the same way: a
+                recurring fee based on the units or beds that use it.
               </p>
+              <ul className="lp-included">
+                <li>The software and every update</li>
+                <li>Voice setup for each new patient</li>
+                <li>Bedside calibration and support</li>
+              </ul>
+              <p>Patients with permanent voice loss can keep using it at home after they leave.</p>
               <div className="lp-actions">
                 <a className="lp-btn lp-btn-ink" href="/app">
                   Try the live demo
@@ -266,7 +272,7 @@ function Story() {
       <div className="lp-story-pin lp-wrap">
         <div className="lp-story-copy">
           <h2 className="lp-h2" data-reveal>
-            Fifteen minutes before surgery. Their own voice after.
+            A few home videos. Their own voice back.
           </h2>
           <ol className="lp-steps">
             {STEPS.map((s, i) => (
