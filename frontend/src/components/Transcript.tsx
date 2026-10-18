@@ -41,7 +41,8 @@ const toText = (lines: Line[]) =>
 function resultMeta(r: LineResult) {
   const time = r.seconds !== undefined ? `${r.seconds.toFixed(2)} s` : ''
   if (r.error) return r.error
-  if (r.phrase) return `Model read “${r.raw || '—'}” · ${time}`
+  if (r.phrase && r.phrase !== r.raw) return `ICU phrase · model read “${r.raw || '—'}” · ${time}`
+  if (r.phrase) return `ICU phrase · ${time}`
   if (r.phrase === null) return `No phrase match · ${time}`
   return r.raw ? `Transcribed in ${time}` : `Nothing read · ${time}`
 }

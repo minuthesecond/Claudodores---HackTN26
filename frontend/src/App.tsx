@@ -58,6 +58,10 @@ export default function App() {
   const [captions, setCaptions] = useState(true)
   const [mirrored, setMirrored] = useState(true)
   const [speakOn, setSpeakOn] = useState(true)
+  const [snapOn, setSnapOn] = useState(true)
+  useEffect(() => {
+    backend.snap = snapOn
+  }, [backend, snapOn])
 
   // Session clock: pauses while not reading.
   const clockRef = useRef<{ acc: number; since: number | null }>({ acc: 0, since: null })
@@ -73,6 +77,9 @@ export default function App() {
   const speaker = useMemo(() => new Speaker(), [])
   const [speakingId, setSpeakingId] = useState<number | null>(null)
   useEffect(() => speaker.on(setSpeakingId), [speaker])
+  useEffect(() => {
+    speaker.wholeSentence = voiceHealth?.device === 'cpu'
+  }, [voiceHealth, speaker])
   const canSpeak = speakOn && voiceOnline
   const spokenRef = useRef(0)
   const last = t.lines[t.lines.length - 1]
@@ -246,6 +253,7 @@ export default function App() {
               { label: 'Landmarks', on: showMesh, set: setShowMesh },
               { label: 'Captions', on: captions, set: setCaptions },
               { label: 'Voice', on: speakOn, set: setSpeakOn },
+              { label: 'ICU phrases', on: snapOn, set: setSnapOn },
               { label: 'Mirror', on: mirrored, set: setMirrored },
             ]}
           />

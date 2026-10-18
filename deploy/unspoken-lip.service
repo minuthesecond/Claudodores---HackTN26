@@ -1,0 +1,15 @@
+[Unit]
+Description=Unspoken lip reader (lipread/server.py, :8000)
+After=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/unspoken
+# Beam 40 (live.py's) took ~5-8 s on 4-second sentences here; 10 is about twice as fast
+Environment=FINAL_BEAM=10
+ExecStart=/home/ubuntu/unspoken/.venv/bin/python lipread/server.py --port 8000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

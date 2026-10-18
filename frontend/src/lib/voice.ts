@@ -5,6 +5,8 @@
  * /speak/stream sends a WAV header and then raw 16-bit PCM as XTTS generates it. We play
  * those samples with Web Audio the moment a little has arrived, rather than letting an
  * <audio> element buffer first, so speech starts ~0.2 s after the request on a GPU.
+ * A CPU can't generate as fast as it plays, so with `wholeSentence` set we wait for the
+ * whole sentence and play it in one go, instead of stuttering.
  * Sentences play one after another, never over each other.
  */
 export const VOICE = (import.meta.env.VITE_VOICE_URL as string | undefined) ?? '/voice'
@@ -28,6 +30,8 @@ const LEAD = 0.03 // scheduling headroom
 type Item = { id: number; text: string }
 
 export class Speaker {
+  /** Play each sentence only once it has fully arrived (for a voice server on CPU). */
+  wholeSentence = false
   private queue: Item[] = []
   private current: Item | null = null
   private abort: AbortController | null = null
@@ -127,7 +131,7 @@ export class Speaker {
       }
       for (; i + 1 < bytes.length; i += 2) pending.push(((bytes[i + 1] << 8) | bytes[i]) << 16 >> 16)
       if (i < bytes.length) carry = bytes[i]
-      if (started || pending.length >= PREBUFFER * RATE) {
+      if (!this.wholeSentence && (started || pending.length >= PREBUFFER * RATE)) {
         started = true
         flush()
       }

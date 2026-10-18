@@ -14,7 +14,8 @@ numpy
 mediapipe==0.10.14
 opencv-python
 
-# Web server (server.py)
+# Web server (server.py); uvicorn needs websockets for the /stream WebSocket
 fastapi
 uvicorn
+websockets
 python-multipart

@@ -7,8 +7,13 @@
  * keypoints, Auto-AVSR) and sends back:
  *   status  — recording | processing | idle
  *   final   — the whole sentence, decoded once the speaker pauses
+ *
+ * With `snap` on, each sentence is checked against the voice server's ICU phrases
+ * (../../voice/phrases.py): a near miss like "i need some water" becomes "i need water",
+ * and anything not close to a phrase is kept exactly as read.
  */
 import type { FrameInput, LipReader, ReaderEvent, ReaderStatus } from './reader'
+import { VOICE } from './voice'
 
 /** Dev: Vite proxies /api (HTTP + WebSocket) to the server (see vite.config.ts). */
 export const API = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api'
@@ -18,6 +23,18 @@ const MAX_IN_FLIGHT = 6 // frames grabbed but not yet handed to the worker
 const RETRY_MS = 2000
 
 export type Health = { ok: boolean; device?: string; model?: string }
+
+type Snap = { raw: string; text: string; phrase: string | null; score: number }
+
+/** The ICU phrase `text` is a near miss for, or null (also when the voice server is down). */
+async function snapToPhrase(text: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${VOICE}/snap?text=${encodeURIComponent(text)}`, { signal: AbortSignal.timeout(1500) })
+    return res.ok ? ((await res.json()) as Snap).phrase : null
+  } catch {
+    return null
+  }
+}
 
 export async function checkHealth(): Promise<Health | null> {
   try {
@@ -45,6 +62,8 @@ type ServerMessage =
   | { type: 'final'; text: string; seconds?: number; error?: string }
 
 export class StreamLipReader implements LipReader {
+  /** Snap sentences to the closest ICU phrase when they're a near miss. */
+  snap = true
   private listeners = new Set<(e: ReaderEvent) => void>()
   private worker: Worker | null = null
   private state: 'closed' | 'connecting' | 'open' = 'closed'
@@ -131,10 +150,21 @@ export class StreamLipReader implements LipReader {
     this.worker.postMessage({ type: 'connect', url: streamUrl() })
   }
 
+  // Messages are handled one after another, so a sentence waiting on its snap check
+  // still lands before the status update that follows it.
+  private queue: Promise<void> = Promise.resolve()
+
   private handle(m: ServerMessage) {
+    this.queue = this.queue.then(() => this.process(m))
+  }
+
+  private async process(m: ServerMessage) {
     if (m.type === 'stats') this.emit({ type: 'stats', fps: m.fps })
     else if (m.type === 'status') this.emit({ type: 'status', status: m.status })
-    else if (m.type === 'final') this.emit({ type: 'result', raw: m.text, seconds: m.seconds, error: m.error })
+    else if (m.type === 'final') {
+      const phrase = this.snap && m.text && !m.error ? await snapToPhrase(m.text) : null
+      this.emit({ type: 'result', raw: m.text, seconds: m.seconds, error: m.error, ...(phrase ? { phrase } : {}) })
+    }
   }
 
   private emit(e: ReaderEvent) {
