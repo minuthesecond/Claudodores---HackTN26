@@ -19,7 +19,11 @@ Run the server:   python voice_server.py            (listens on http://0.0.0.0:8
   POST /speak   {"text": "i need water"}      -> same
   GET  /speak/stream?text=i%20need%20water    -> .wav that starts playing while it's generated
   GET  /voices                                -> the 58 built-in voices; add &voice=Ana%20Florence to pick one
+  GET  /snap?text=i%20say%20water             -> {"raw", "text", "phrase", "score"}: closest ICU phrase, if close
   GET  /health                                -> {"ok": true, "device": "cpu" | "cuda", "voice": ...}
+
+Add &snap=1 to any /speak link (or "snap": true in the POST body) to speak the closest ICU
+phrase instead of the raw lip-read text, when it's a close match (see phrases.py).
 
 In the browser:  new Audio(`${VOICE_URL}/speak/stream?text=${encodeURIComponent(text)}`).play()
 """
@@ -30,13 +34,7 @@ import shutil
 import struct
 
 import voice
-
-# Pre-spoken at startup so these play instantly during the demo
-PHRASES = [
-    "i am in pain", "i can't breathe", "i need water", "call the nurse",
-    "call my family", "i am cold", "i am hot", "yes", "no", "thank you",
-    "i need to use the bathroom", "where am i", "i am scared",
-]
+from phrases import PHRASES, snap as snap_phrase
 
 
 def wav_header(rate=voice.SAMPLE_RATE):
@@ -69,11 +67,17 @@ def make_app():
         """XTTS's built-in voices; pass one as ?voice=... to the speak endpoints."""
         return {"default": voice.default_voice(), "voices": voice.speakers()}
 
-    def clean(text):
+    @app.get("/snap")
+    def snap(text: str):
+        """The closest ICU phrase to `text`, or `text` unchanged if none is close (phrase: null)."""
+        out, phrase, score = snap_phrase(text)
+        return {"raw": text, "text": out, "phrase": phrase, "score": round(score, 2)}
+
+    def clean(text, snap=False):
         text = text.strip().lower()
         if not text:
             raise HTTPException(400, "text is empty")
-        return text
+        return snap_phrase(text)[0] if snap else text
 
     def check_voice(name):
         """Fail with a clear error before any audio is sent, rather than mid-stream."""
@@ -90,21 +94,24 @@ def make_app():
         text: str
         language: str = "en"
         voice: str | None = None
+        snap: bool = False
 
     @app.get("/speak")
-    def speak_get(text: str, language: str = "en", voice_name: str | None = Query(None, alias="voice")):
+    def speak_get(text: str, language: str = "en", voice_name: str | None = Query(None, alias="voice"),
+                  snap: bool = False):
         """Returns a .wav of `text`."""
-        return FileResponse(voice.speak_to_file(clean(text), language, check_voice(voice_name)),
+        return FileResponse(voice.speak_to_file(clean(text, snap), language, check_voice(voice_name)),
                             media_type="audio/wav")
 
     @app.post("/speak")
     def speak_post(req: SpeakRequest):
-        return speak_get(req.text, req.language, req.voice)
+        return speak_get(req.text, req.language, req.voice, req.snap)
 
     @app.get("/speak/stream")
-    def speak_stream(text: str, language: str = "en", voice_name: str | None = Query(None, alias="voice")):
+    def speak_stream(text: str, language: str = "en", voice_name: str | None = Query(None, alias="voice"),
+                     snap: bool = False):
         """Same audio as /speak, but sent while it's generated so playback starts sooner."""
-        text, name = clean(text), check_voice(voice_name)
+        text, name = clean(text, snap), check_voice(voice_name)
 
         def audio():
             yield wav_header()
