@@ -43,15 +43,13 @@ function lips(jaw: number) {
     `M${x0},${c} C${x0 + 12},${yU + 7} 34,${yU} 42,${yU} Q46,${yU} 50,${yU + 3.5} Q54,${yU} 58,${yU} ` +
     `C66,${yU} ${x1 - 12},${yU + 7} ${x1},${c} C${x1 - 16},${yi} ${x0 + 16},${yi} ${x0},${c}Z`
   const lower = `M${x0},${c} C${x0 + 16},${yj} ${x1 - 16},${yj} ${x1},${c} C${x1 - 14},${yL} ${x0 + 14},${yL} ${x0},${c}Z`
-  const cavity = `M${x0},${c} C${x0 + 16},${yi} ${x1 - 16},${yi} ${x1},${c} C${x1 - 16},${yj} ${x0 + 16},${yj} ${x0},${c}Z`
-  return { upper, lower, cavity }
+  return { upper, lower }
 }
 
 /** The mouth drawn as an articulation card would draw it; `live` replays the real jaw trace. */
 export function MouthDrawing({ jaw, live = false, className = '' }: { jaw?: number; live?: boolean; className?: string }) {
   const upRef = useRef<SVGPathElement>(null)
   const loRef = useRef<SVGPathElement>(null)
-  const cavRef = useRef<SVGPathElement>(null)
   const p = lips(jaw ?? 0)
 
   useEffect(() => {
@@ -70,7 +68,6 @@ export function MouthDrawing({ jaw, live = false, className = '' }: { jaw?: numb
       const q = lips(v)
       upRef.current?.setAttribute('d', q.upper)
       loRef.current?.setAttribute('d', q.lower)
-      cavRef.current?.setAttribute('d', q.cavity)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
@@ -78,7 +75,6 @@ export function MouthDrawing({ jaw, live = false, className = '' }: { jaw?: numb
 
   return (
     <svg viewBox="0 0 100 64" className={`lips ${className}`} aria-hidden>
-      <path ref={cavRef} className="lips-cavity" d={p.cavity} />
       <path ref={upRef} className="lips-upper" d={p.upper} />
       <path ref={loRef} className="lips-lower" d={p.lower} />
     </svg>

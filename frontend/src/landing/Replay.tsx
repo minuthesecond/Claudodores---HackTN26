@@ -156,7 +156,16 @@ export function Replay() {
         </header>
 
         <p className="rp-text" aria-live="off">
-          {text && <span>{text}</span>}
+          {/* word by word, keyed by position, so only newly decoded words animate in */}
+          {text
+            .split(' ')
+            .filter(Boolean)
+            .map((w, i) => (
+              <span key={`${i}-${w}`}>
+                {i > 0 && ' '}
+                <span className="rp-word">{i === 0 ? w[0].toUpperCase() + w.slice(1) : w}</span>
+              </span>
+            ))}
           {!done && <span className="rp-caret" />}
         </p>
 

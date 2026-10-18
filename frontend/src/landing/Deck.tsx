@@ -71,7 +71,13 @@ function Bank() {
         <MouthDrawing live className="dk-mouth" />
       </div>
       <span className="dk-label">Read aloud</span>
-      <p className="dk-prompt">The boat sailed across the bay before dawn.</p>
+      <p className="dk-prompt">
+        {'The boat sailed across the bay before dawn.'.split(' ').map((w, i) => (
+          <span key={i} style={{ ['--i' as string]: i }}>
+            {w}{' '}
+          </span>
+        ))}
+      </p>
       <Wave bars={30} />
       <div className="dk-meter">
         <span>Sentence 23 of 40</span>
@@ -100,7 +106,7 @@ function Train() {
       </div>
       <div className="dk-tiles">
         {TILE_JAW.map((j, i) => (
-          <span key={i} className="dk-tile">
+          <span key={i} className="dk-tile" style={{ ['--i' as string]: i }}>
             <MouthDrawing jaw={j} />
           </span>
         ))}

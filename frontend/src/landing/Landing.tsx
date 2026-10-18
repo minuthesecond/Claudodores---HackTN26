@@ -3,7 +3,7 @@ import { Logo } from '../components/Icons'
 import { STEPS, StepCard } from './Deck'
 import { MouthGlyph } from './glyph'
 import { Replay } from './Replay'
-import { useScrollProgress, useSmoothScroll } from './motion'
+import { useCountUp, useReveal, useScrollProgress, useScrollVars, useSmoothScroll } from './motion'
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css'
 import '@fontsource-variable/atkinson-hyperlegible-mono/wght.css'
 import './landing.css'
@@ -20,7 +20,7 @@ const SOURCES = [
 // The business plan's competitive map: x = silent, no typing; y = sounds like the patient
 const OPTIONS = [
   { x: 0.12, y: 0.78, name: 'Typing + banked voice', trade: 'Sounds like them, but every sentence is typed.' },
-  { x: 0.16, y: 0.16, name: 'Whiteboard, letter board', trade: 'Slow, and no voice at all.' },
+  { x: 0.16, y: 0.28, name: 'Whiteboard, letter board', trade: 'Slow, and no voice at all.' },
   { x: 0.62, y: 0.3, name: 'Electrolarynx', trade: 'Fast, held to the throat, robotic.' },
   { x: 0.86, y: 0.14, name: 'Lip-reading apps', trade: 'Silent, but a stranger’s voice.' },
 ]
@@ -33,8 +33,17 @@ function Arrow() {
   )
 }
 
+/** A figure that counts up from zero when it scrolls into view. */
+function Count({ to }: { to: number }) {
+  const ref = useCountUp<HTMLSpanElement>(to)
+  return <span ref={ref}>{to.toLocaleString('en-US')}</span>
+}
+
 export function Landing() {
+  const root = useRef<HTMLDivElement>(null)
   useSmoothScroll()
+  useReveal(root)
+  useScrollVars(root)
   const heroCta = useRef<HTMLAnchorElement>(null)
   const [ctaInView, setCtaInView] = useState(true)
 
@@ -52,7 +61,7 @@ export function Landing() {
   }, [])
 
   return (
-    <div className="lp">
+    <div className="lp" ref={root}>
       <a className="lp-skip" href="#main">
         Skip to content
       </a>
@@ -82,12 +91,16 @@ export function Landing() {
         <section className="lp-hero">
           <div className="lp-wrap lp-hero-top">
             <h1 className="lp-title">
-              <span>Mouth it.</span>
-              <span>
-                Hear <span className="lp-under">yourself.</span>
+              <span className="lp-line">
+                <span>Mouth it.</span>
+              </span>
+              <span className="lp-line">
+                <span>
+                  Hear <span className="lp-under">yourself.</span>
+                </span>
               </span>
             </h1>
-            <div className="lp-hero-aside">
+            <div className="lp-hero-aside lp-intro">
               <p className="lp-lede">
                 Unspoken reads a patient’s lips and speaks for them in their own voice, for people who lose
                 it to a laryngectomy or tracheostomy.
@@ -100,7 +113,7 @@ export function Landing() {
           </div>
 
           <div className="lp-wrap">
-            <div className="lp-stack">
+            <div className="lp-stack" data-scroll>
               <span className="lp-stack-card lp-stack-a" aria-hidden />
               <span className="lp-stack-card lp-stack-b" aria-hidden />
               <div className="lp-stack-top">
@@ -108,7 +121,7 @@ export function Landing() {
                 <Replay />
               </div>
             </div>
-            <p className="lp-note">
+            <p className="lp-note" data-reveal>
               A real three-second clip, read by the working prototype. The model sees only the mouth.
             </p>
           </div>
@@ -116,13 +129,20 @@ export function Landing() {
 
         {/* --------------------------------------------------------- problem */}
         <section className="lp-why lp-wrap" id="why">
-          <h2 className="lp-h2">
-            Losing your voice shouldn’t mean <span className="lp-under">losing a say.</span>
+          <h2 className="lp-h2" data-reveal>
+            <span className="lp-nowrap">Losing your voice</span> shouldn’t mean{' '}
+            <span className="lp-under">losing a say.</span>
           </h2>
-          <div className="lp-why-body">
+          <div className="lp-why-body" data-reveal>
             <p className="lp-claim">
-              Every year <strong>12,290</strong>
-              <sup>1</sup> Americans are diagnosed with laryngeal cancer, and <strong>75–100K</strong>
+              Every year{' '}
+              <strong>
+                <Count to={12290} />
+              </strong>
+              <sup>1</sup> Americans are diagnosed with laryngeal cancer, and{' '}
+              <strong>
+                <Count to={75} />–<Count to={100} />K
+              </strong>
               <sup>2</sup> adults get a tracheostomy. Patients who can’t communicate are <strong>three times</strong>
               <sup>3</sup> as likely to suffer a preventable adverse event in hospital.
             </p>
@@ -139,17 +159,17 @@ export function Landing() {
 
         {/* ---------------------------------------------------------- map */}
         <section className="lp-map-section lp-wrap">
-          <h2 className="lp-h2 lp-map-title">The only option that’s silent and still sounds like them.</h2>
+          <h2 className="lp-h2 lp-map-title" data-reveal>The only option that’s silent and still sounds like them.</h2>
           <div className="lp-map-grid">
             <CompetitiveMap />
-            <ul className="lp-options">
-              {OPTIONS.map((o) => (
-                <li key={o.name}>
+            <ul className="lp-options" data-reveal>
+              {OPTIONS.map((o, i) => (
+                <li key={o.name} style={{ ['--i' as string]: i }}>
                   <strong>{o.name}</strong>
                   <span>{o.trade}</span>
                 </li>
               ))}
-              <li className="is-us">
+              <li className="is-us" style={{ ['--i' as string]: OPTIONS.length }}>
                 <strong>Unspoken</strong>
                 <span>Mouth it, confirm it, heard in their own voice.</span>
               </li>
@@ -158,13 +178,13 @@ export function Landing() {
         </section>
 
         {/* ---------------------------------------------------- hospitals */}
-        <section className="lp-hospitals" id="hospitals">
+        <section className="lp-hospitals" id="hospitals" data-scroll>
           <div className="lp-wrap lp-hospitals-grid">
             <h2 className="lp-price">
               <span>$400 a patient.</span>
               <span>Patients pay nothing.</span>
             </h2>
-            <div className="lp-hospitals-side">
+            <div className="lp-hospitals-side" data-reveal>
               <p>
                 Licensed to cancer centers and hospitals. Banking fits the speech therapy visit that already
                 happens before surgery, so there is no new appointment to schedule.
@@ -225,7 +245,9 @@ function Story() {
     <section className="lp-story" id="how" ref={ref}>
       <div className="lp-story-pin lp-wrap">
         <div className="lp-story-copy">
-          <h2 className="lp-h2">Fifteen minutes before surgery. Their own voice after.</h2>
+          <h2 className="lp-h2" data-reveal>
+            Fifteen minutes before surgery. Their own voice after.
+          </h2>
           <ol className="lp-steps">
             {STEPS.map((s, i) => (
               <li key={s.id} className={i === step ? 'is-active' : ''}>
@@ -264,17 +286,17 @@ function Story() {
 /** The business plan's competitive map, plotted on a card. */
 function CompetitiveMap() {
   return (
-    <figure className="lp-map" aria-label="Communication options plotted by how silent they are and how much they sound like the patient">
+    <figure className="lp-map" data-reveal aria-label="Communication options plotted by how silent they are and how much they sound like the patient">
       <span className="lp-hole" aria-hidden />
       <div className="lp-map-plot">
         <span className="lp-map-q" aria-hidden />
         <span className="lp-map-y">Sounds like them</span>
         <span className="lp-map-x">Silent, no typing</span>
-        {OPTIONS.map((d) => (
+        {OPTIONS.map((d, i) => (
           <span
             key={d.name}
             className={`lp-map-dot ${d.x > 0.55 ? 'is-left' : ''}`}
-            style={{ left: `${d.x * 100}%`, bottom: `${d.y * 100}%` }}
+            style={{ left: `${d.x * 100}%`, bottom: `${d.y * 100}%`, ['--i' as string]: i }}
           >
             <i />
             {d.name}
