@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Logo } from '../components/Icons'
 import { STEPS, StepCard } from './Deck'
 import { MouthGlyph } from './glyph'
-import { Intro } from './Intro'
+import { Reading } from './Reading'
 import { Replay } from './Replay'
 import { useCountUp, useReveal, useScrollProgress, useScrollVars, useSmoothScroll } from './motion'
 import './landing.css'
@@ -87,73 +87,73 @@ export function Landing() {
 
       <main id="main">
         {/* ------------------------------------------------------------ hero */}
-        <Intro>
-          <section className="lp-hero">
-            <div className="lp-wrap lp-hero-top">
-              <h1 className="lp-title">
-                <span className="lp-line">
-                  <span>Mouth it.</span>
+        <section className="lp-hero">
+          <div className="lp-wrap lp-hero-top">
+            <h1 className="lp-title">
+              <span className="lp-line">
+                <span>Mouth it.</span>
+              </span>
+              <span className="lp-line">
+                <span>
+                  Hear <span className="lp-under">yourself.</span>
                 </span>
-                <span className="lp-line">
-                  <span>
-                    Hear <span className="lp-under">yourself.</span>
-                  </span>
-                </span>
-              </h1>
-              <div className="lp-hero-aside lp-intro">
-                <p className="lp-lede">
-                  Unspoken reads a patient’s lips and speaks for them in their own voice, for people who lose
-                  it to a laryngectomy or tracheostomy.
-                </p>
-                <a className="lp-btn lp-btn-card" href="/app" ref={heroCta}>
-                  Try the live demo
-                  <Arrow />
-                </a>
-              </div>
-            </div>
-
-            <div className="lp-wrap">
-              <div className="lp-stack" data-scroll>
-                <span className="lp-stack-card lp-stack-a" aria-hidden />
-                <span className="lp-stack-card lp-stack-b" aria-hidden />
-                <div className="lp-stack-top">
-                  <span className="lp-hole" aria-hidden />
-                  <Replay />
-                </div>
-              </div>
-              <p className="lp-note" data-reveal>
-                A real three-second clip, read by the working prototype. The model sees only the mouth.
+              </span>
+            </h1>
+            <div className="lp-hero-aside lp-intro">
+              <p className="lp-lede">
+                Unspoken reads a patient’s lips and speaks for them in their own voice, for people who lose
+                it to a laryngectomy or tracheostomy.
               </p>
+              <a className="lp-btn lp-btn-card" href="/app" ref={heroCta}>
+                Try the live demo
+                <Arrow />
+              </a>
             </div>
-          </section>
-        </Intro>
+          </div>
 
-        {/* --------------------------------------------------------- problem */}
-        <section className="lp-why lp-wrap" id="why">
-          <h2 className="lp-h2" data-reveal>
-            <span className="lp-nowrap">Losing your voice</span> shouldn’t mean{' '}
-            <span className="lp-under">losing a say.</span>
-          </h2>
-          <div className="lp-why-body" data-reveal>
-            <p className="lp-claim">
-              Every year{' '}
-              <strong>
-                <Count to={12290} />
-              </strong>
-              <sup>1</sup> Americans are diagnosed with laryngeal cancer, and{' '}
-              <strong>
-                <Count to={75} />–<Count to={100} />K
-              </strong>
-              <sup>2</sup> adults get a tracheostomy. Patients who can’t communicate are <strong>three times</strong>
-              <sup>3</sup> as likely to suffer a preventable adverse event in hospital.
+          <div className="lp-wrap">
+            <div className="lp-stack" data-scroll>
+              <span className="lp-stack-card lp-stack-a" aria-hidden />
+              <span className="lp-stack-card lp-stack-b" aria-hidden />
+              <div className="lp-stack-top">
+                <span className="lp-hole" aria-hidden />
+                <Replay />
+              </div>
+            </div>
+            <p className="lp-note" data-reveal>
+              A real three-second clip, read by the working prototype. The model sees only the mouth.
             </p>
-            <ol className="lp-sources">
-              {SOURCES.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ol>
           </div>
         </section>
+
+        {/* --------------------------------------------------------- problem */}
+        <Reading>
+          <section className="lp-why lp-wrap" id="why">
+            <h2 className="lp-h2" data-reveal>
+              <span className="lp-nowrap">Losing your voice</span> shouldn’t mean{' '}
+              <span className="lp-under">losing a say.</span>
+            </h2>
+            <div className="lp-why-body" data-reveal>
+              <p className="lp-claim">
+                Every year{' '}
+                <strong>
+                  <Count to={12290} />
+                </strong>
+                <sup>1</sup> Americans are diagnosed with laryngeal cancer, and{' '}
+                <strong>
+                  <Count to={75} />–<Count to={100} />K
+                </strong>
+                <sup>2</sup> adults get a tracheostomy. Patients who can’t communicate are <strong>three times</strong>
+                <sup>3</sup> as likely to suffer a preventable adverse event in hospital.
+              </p>
+              <ol className="lp-sources">
+                {SOURCES.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ol>
+            </div>
+          </section>
+        </Reading>
 
         {/* ------------------------------------------------ the dealt deck */}
         <Story />
