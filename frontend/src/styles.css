@@ -100,10 +100,6 @@ button:disabled {
   font-size: 15px;
 }
 
-.logo {
-  display: block;
-}
-
 /* the mouth drawing, shared with the landing page */
 .lips {
   display: block;
@@ -152,12 +148,8 @@ button:disabled {
   gap: 12px;
 }
 
-.brand .logo {
-  color: var(--ink);
-}
-
 .brand-name {
-  font: 800 20px/1 var(--sans);
+  font: 800 22px/1 var(--sans);
   letter-spacing: -0.02em;
 }
 
@@ -1091,4 +1083,40 @@ html:has(.app) body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------------------------------------------------------------- wordmark */
+/* "Unspoken" with a mouth for its o: the upper lip takes the text colour, the lower lip is orange */
+.wm {
+  display: inline-flex;
+  align-items: baseline;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.wm-o {
+  display: block;
+  overflow: visible;
+}
+
+.wm .wm-o {
+  width: 0.64em;
+  height: 0.64em;
+  margin: 0 0.02em 0 0.03em;
+  align-self: baseline;
+  translate: 0 0.04em;
+}
+
+.wm-o path {
+  fill: none;
+  stroke-width: 19;
+}
+
+.wm-lip-top {
+  stroke: currentColor;
+}
+
+.wm-lip-bot {
+  stroke: var(--orange);
 }

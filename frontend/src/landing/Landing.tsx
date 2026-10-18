@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Logo } from '../components/Icons'
+import { MouthMark, Wordmark } from '../components/Wordmark'
 import { STEPS, StepCard } from './Deck'
-import { MouthGlyph } from './glyph'
 import { Reading } from './Reading'
 import { Replay } from './Replay'
 import { useCountUp, useReveal, useScrollProgress, useScrollVars, useSmoothScroll } from './motion'
@@ -43,18 +42,6 @@ export function Landing() {
   useSmoothScroll()
   useReveal(root)
   useScrollVars(root)
-  const heroCta = useRef<HTMLAnchorElement>(null)
-  const [ctaInView, setCtaInView] = useState(true)
-
-  // one "Try the live demo" at a time: the nav's appears once the hero's scrolls away
-  useEffect(() => {
-    const el = heroCta.current
-    if (!el) return
-    const io = new IntersectionObserver(([e]) => setCtaInView(e.isIntersecting), { rootMargin: '-72px 0px 0px 0px' })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-
   useEffect(() => {
     document.title = 'Unspoken — Speak again, in your own voice'
   }, [])
@@ -66,20 +53,14 @@ export function Landing() {
       </a>
       <header className="lp-nav">
         <a className="lp-brand" href="/" aria-label="Unspoken, home">
-          <Logo size={26} />
-          <span>Unspoken</span>
+          <Wordmark />
         </a>
         <nav className="lp-links" aria-label="Sections">
           <a href="#how">How it works</a>
           <a href="#why">Why it matters</a>
           <a href="#hospitals">For hospitals</a>
         </nav>
-        <a
-          className={`lp-btn lp-btn-card lp-nav-cta ${ctaInView ? 'is-hidden' : ''}`}
-          href="/app"
-          tabIndex={ctaInView ? -1 : undefined}
-          aria-hidden={ctaInView || undefined}
-        >
+        <a className="lp-btn lp-btn-card lp-nav-cta" href="/app">
           Try the live demo
           <Arrow />
         </a>
@@ -89,13 +70,18 @@ export function Landing() {
         {/* ------------------------------------------------------------ hero */}
         <section className="lp-hero">
           <div className="lp-wrap lp-hero-top">
-            <h1 className="lp-title">
+            <h1 className="lp-title" aria-label="Mouth it. Hear yourself.">
               <span className="lp-line">
-                <span>Mouth it.</span>
+                <span aria-hidden>
+                  M<MouthMark className="lp-title-o" />
+                  uth it.
+                </span>
               </span>
               <span className="lp-line">
                 <span>
-                  Hear <span className="lp-under">yourself.</span>
+                  <span aria-hidden>
+                    Hear <span className="lp-under">yourself.</span>
+                  </span>
                 </span>
               </span>
             </h1>
@@ -104,7 +90,7 @@ export function Landing() {
                 Unspoken reads a patient’s lips and speaks for them in their own voice, for people who lose
                 it to a laryngectomy or tracheostomy.
               </p>
-              <a className="lp-btn lp-btn-card" href="/app" ref={heroCta}>
+              <a className="lp-btn lp-btn-card" href="/app">
                 Try the live demo
                 <Arrow />
               </a>
@@ -120,9 +106,6 @@ export function Landing() {
                 <Replay />
               </div>
             </div>
-            <p className="lp-note" data-reveal>
-              A real three-second clip, read by the working prototype. The model sees only the mouth.
-            </p>
           </div>
         </section>
 
@@ -158,7 +141,7 @@ export function Landing() {
         {/* ------------------------------------------------- from the floor */}
         <section className="lp-voice">
           <figure className="lp-wrap lp-voice-grid">
-            <MouthGlyph live className="lp-voice-glyph" />
+            <MouthMark className="lp-voice-glyph" />
             <div>
               <blockquote className="lp-voice-quote" data-reveal>
                 <p>
@@ -232,8 +215,7 @@ export function Landing() {
       <footer className="lp-foot">
         <div className="lp-wrap lp-foot-row">
           <span className="lp-brand lp-brand-sm">
-            <Logo size={20} />
-            <span>Unspoken</span>
+            <Wordmark />
           </span>
           <span>HackTN 2026 · The Claudodores</span>
           <span>Prototype. Not a medical device.</span>
@@ -329,7 +311,7 @@ function CompetitiveMap() {
           </span>
         ))}
         <span className="lp-map-us" style={{ left: '84%', bottom: '84%' }}>
-          <MouthGlyph jaw={0.18} />
+          <MouthMark />
           Unspoken
         </span>
       </div>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Stage, type ChipTone } from './components/Stage'
 import { Transcript, Words, type StatItem } from './components/Transcript'
 import { Controls } from './components/Controls'
-import { Logo } from './components/Icons'
+import { Wordmark } from './components/Wordmark'
 import { MouthDrawing } from './landing/glyph'
 import { useCamera } from './hooks/useCamera'
 import { useTranscript } from './hooks/useTranscript'
@@ -183,8 +183,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <a className="brand" href="/">
-          <Logo />
-          <span className="brand-name">Unspoken</span>
+          <Wordmark className="brand-name" />
           <span className="badge">Prototype</span>
         </a>
         <dl className="topbar-meta">
