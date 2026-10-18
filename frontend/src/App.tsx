@@ -123,7 +123,7 @@ export default function App() {
   const speakAgain = useCallback((line: Line) => speaker.say(line.id, line.text), [speaker])
 
   useEffect(() => {
-    document.title = 'Unspoken — Live demo'
+    document.title = 'Unspoken'
   }, [])
 
   const [streamFps, setStreamFps] = useState<number | null>(null)
