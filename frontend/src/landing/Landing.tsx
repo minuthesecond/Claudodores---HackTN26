@@ -47,12 +47,37 @@ export function Landing() {
     document.title = 'Unspoken'
   }, [])
 
+  // the bar takes the colour of whatever is passing just beneath it, with light or dark ink
+  const nav = useRef<HTMLElement>(null)
+  useEffect(() => {
+    let raf = 0
+    const update = () => {
+      raf = 0
+      const bar = nav.current
+      if (!bar) return
+      const color = colorUnder(bar.offsetHeight + 1)
+      bar.style.backgroundColor = color
+      bar.classList.toggle('is-light', isLight(color))
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update)
+    }
+    update()
+    addEventListener('scroll', onScroll, { passive: true })
+    addEventListener('resize', onScroll)
+    return () => {
+      removeEventListener('scroll', onScroll)
+      removeEventListener('resize', onScroll)
+      cancelAnimationFrame(raf)
+    }
+  }, [])
+
   return (
     <div className="lp" ref={root}>
       <a className="lp-skip" href="#main">
         Skip to content
       </a>
-      <header className="lp-nav">
+      <header className="lp-nav" ref={nav}>
         <a className="lp-brand" href="/" aria-label="Unspoken, home">
           <Wordmark />
         </a>
@@ -213,6 +238,41 @@ export function Landing() {
       </footer>
     </div>
   )
+}
+
+const TRANSPARENT = 'rgba(0, 0, 0, 0)'
+
+/** The background colour showing at height y, just below the bar, along the page's left gutter. */
+function colorUnder(y: number): string {
+  const root = getComputedStyle(document.querySelector('.lp')!)
+  // the hero paints cobalt, then gives way to paper behind the bottom of the card
+  const hero = document.querySelector<HTMLElement>('.lp-hero')
+  if (hero) {
+    const r = hero.getBoundingClientRect()
+    if (y >= r.top && y < r.bottom) {
+      const paperFrom = r.bottom - 104 - parseFloat(getComputedStyle(hero).paddingBottom)
+      return (y < paperFrom ? root.getPropertyValue('--cobalt') : root.getPropertyValue('--paper')).trim()
+    }
+  }
+  // the reading scene's veil ignores the pointer, so it is checked by position
+  const veil = document.querySelector<HTMLElement>('.rs:not(.is-open) .rs-top')
+  if (veil) {
+    const r = veil.getBoundingClientRect()
+    if (y >= r.top && y < r.bottom) return getComputedStyle(veil).backgroundColor
+  }
+  for (let el = document.elementFromPoint(4, y); el; el = el.parentElement) {
+    const c = getComputedStyle(el).backgroundColor
+    if (c !== TRANSPARENT) return c
+  }
+  return root.getPropertyValue('--paper').trim()
+}
+
+/** Whether a colour (#rrggbb or rgb()) is light enough to need dark ink on it. */
+function isLight(color: string): boolean {
+  const [r, g, b] = color.startsWith('#')
+    ? [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16))
+    : color.match(/[\d.]+/g)!.map(Number)
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.6
 }
 
 const SECTIONS = [

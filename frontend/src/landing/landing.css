@@ -143,7 +143,7 @@ html:has(.lp) {
 }
 
 .lp-hero-stat strong {
-  font: 800 clamp(48px, 4.6vw, 72px) / 0.9 var(--sans);
+  font: 800 clamp(56px, 5.6vw, 88px) / 0.9 var(--sans);
   letter-spacing: -0.05em;
   color: var(--orange);
 }
@@ -192,6 +192,8 @@ html:has(.lp) {
 }
 
 /* ----------------------------------------------------------------- nav */
+/* the bar stays at the top in one solid colour: whatever section is passing beneath it
+   (set from Landing), fading from one to the next as the page scrolls */
 .lp-nav {
   position: sticky;
   top: 0;
@@ -202,10 +204,50 @@ html:has(.lp) {
   align-items: center;
   --gutter: clamp(20px, 6vw, 96px);
   padding: 0 max(var(--gutter), calc((100% - 1280px) / 2 + var(--gutter)));
-  background: rgb(31 63 191 / 0.84);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: var(--cobalt);
   color: var(--on-cobalt);
+  transition: background-color 0.45s var(--ease);
+}
+
+/* over a light section the bar's ink turns dark */
+.lp-nav .lp-brand,
+.lp-nav .lp-links a,
+.lp-nav .lp-links,
+.lp-nav .lp-links-glow,
+.lp-nav .lp-nav-cta {
+  transition:
+    color 0.45s var(--ease),
+    background-color 0.45s var(--ease),
+    box-shadow 0.45s var(--ease),
+    translate 0.45s cubic-bezier(0.34, 1.4, 0.5, 1),
+    width 0.45s cubic-bezier(0.34, 1.4, 0.5, 1),
+    opacity 0.25s;
+}
+
+.lp-nav.is-light .lp-brand {
+  color: var(--ink);
+}
+
+.lp-nav.is-light .lp-links {
+  background: rgb(21 22 26 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(21 22 26 / 0.08);
+}
+
+.lp-nav.is-light .lp-links a {
+  color: var(--ink);
+}
+
+.lp-nav.is-light .lp-links a.is-lit {
+  color: var(--card);
+}
+
+.lp-nav.is-light .lp-links-glow {
+  background: var(--cobalt);
+}
+
+.lp-nav.is-light .lp-nav-cta {
+  background: var(--ink);
+  color: var(--card);
 }
 
 .lp-brand {
