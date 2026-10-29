@@ -46,11 +46,12 @@ export function MouthMark({ className = '', live = true }: { className?: string;
   )
 }
 
-export function Wordmark({ className = '' }: { className?: string }) {
+/** With `live={false}` the mouth stays closed, for places where motion would distract. */
+export function Wordmark({ className = '', live = true }: { className?: string; live?: boolean }) {
   return (
     <span className={`wm ${className}`} role="img" aria-label="Unspoken">
       <span aria-hidden>Unsp</span>
-      <MouthMark />
+      <MouthMark live={live} />
       <span aria-hidden>ken</span>
     </span>
   )

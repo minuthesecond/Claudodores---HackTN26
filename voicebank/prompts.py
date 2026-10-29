@@ -21,7 +21,7 @@ PROMPTS = [
 PHRASES = [
     "i am in pain", "i can't breathe", "i need water", "call the nurse",
     "call my family", "i am cold", "i am hot", "yes", "no", "thank you",
-    "i need to use the bathroom", "where am i", "i am scared",
+    "i need to use the bathroom", "where am i", "i am scared", "i need suction",
 ]
 
 PREVIEW = "hi, it's me. i need some water, and could you please call my family?"

@@ -46,6 +46,7 @@ const CORPUS = [
   'i need to use the bathroom',
   'where am i',
   'i am scared',
+  'i need suction',
 ]
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min)

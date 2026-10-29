@@ -33,7 +33,7 @@ type Step = 'name' | 'voice' | 'account'
 type Saved = { step: Step; name: string; voiceId: string | null }
 
 const KEY = 'unspoken.onboarding'
-const VOICE_KEY = 'unspoken.voice' // the reader's chosen voice (App.tsx)
+const VOICE_KEY = 'unspoken.voice' // the bedside's chosen voice (app/settings.ts)
 const MIN_S = 6 // voicebank/banking.py MIN_SPEECH_S
 const STEPS: Step[] = ['name', 'voice', 'account']
 

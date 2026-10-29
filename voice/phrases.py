@@ -16,7 +16,7 @@ import sys
 PHRASES = [
     "i am in pain", "i can't breathe", "i need water", "call the nurse",
     "call my family", "i am cold", "i am hot", "yes", "no", "thank you",
-    "i need to use the bathroom", "where am i", "i am scared",
+    "i need to use the bathroom", "where am i", "i am scared", "i need suction",
 ]
 
 THRESHOLD = 0.75  # 0..1; below this the text is left as it was read
