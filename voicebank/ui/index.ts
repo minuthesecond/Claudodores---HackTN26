@@ -1,5 +1,3 @@
-export { VoicebankPanel } from './VoicebankPanel'
-export { VoicePicker } from './VoicePicker'
 export { useVoicebank } from './useVoicebank'
 export {
   VOICEBANK,
@@ -8,11 +6,15 @@ export {
   buildProfile,
   checkVoicebank,
   createProfile,
+  deleteMedia,
+  deleteProfile,
   getProfile,
   getPrompts,
+  MAX_UPLOAD_BYTES,
+  MAX_UPLOADS,
   mediaUrl,
   speakUrl,
+  uploadMedia,
 } from './api'
-export type { Profile, Prompts } from './api'
-export { Recorder, Preview } from './VoicebankPanel'
+export type { Media, Profile, Prompts } from './api'
 export { login, logout, signup, useUser, getUser, type User } from './auth'
